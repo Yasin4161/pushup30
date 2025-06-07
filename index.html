@@ -4,19 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>30 Günlük Şınav Meydan Okuması</title>
-
-  <!-- Uygulama ikonu -->
   <link rel="icon" type="image/jpeg" sizes="192x192" href="img/normal_pushup.jpg">
   <link rel="apple-touch-icon" sizes="512x512" href="img/normal_pushup.jpg">
   <link rel="manifest" href="manifest.json">
-
-  <!-- Yazı tipi -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
   <style>
     :root { --primary:#1abc9c; --danger:#e74c3c; --dark:#2c3e50; --light:#ecf0f1; }
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Poppins',sans-serif;background:var(--light);color:var(--dark);padding-bottom:60px}
+    body{font-family:'Poppins',sans-serif;background:var(--light);color:var(--dark);padding-bottom:80px}
     header{padding:20px;text-align:center}
     h1{font-size:clamp(1.6rem,5vw,2.2rem);margin-bottom:10px}
     #progressBarWrap{background:#ccc;border-radius:8px;height:10px;width:100%;overflow:hidden}
@@ -25,7 +20,6 @@
     .day{background:#fff;border-radius:10px;padding:16px 0;text-align:center;font-weight:600;cursor:pointer;user-select:none;box-shadow:0 2px 6px rgba(0,0,0,.08);transition:transform .1s}
     .day:active{transform:scale(.96)}
     .day.done{background:var(--primary);color:#fff}
-    /* Modal */
     #detail{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;padding:15px;z-index:10}
     #detailCard{background:#fff;width:100%;max-width:430px;border-radius:14px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,.25);overflow-y:auto;max-height:92vh}
     #detailCard img{width:100%;border-radius:10px;margin-bottom:14px}
@@ -38,6 +32,9 @@
     button.danger{background:var(--danger)}
     button.small{padding:6px 10px;font-size:.9rem}
     #timerDisplay{font-size:2rem;margin-bottom:8px;letter-spacing:1px}
+    footer{text-align:center;padding:20px;font-size:.9rem}
+    footer a{color:var(--primary);text-decoration:none}
+    footer a:hover{text-decoration:underline}
     @media (hover:hover){button:hover{opacity:.9}}
   </style>
 </head>
@@ -49,29 +46,27 @@
 
   <section id="calendar"></section>
 
-  <!-- Modal -->
+  <footer>
+    <a href="neden.html">Neden Şınav Çekmelisin?</a>
+  </footer>
+
+  <!-- Detay kutusu (modal) -->
   <div id="detail">
     <div id="detailCard">
       <h2 id="dayTitle"></h2>
       <img id="dayImg" src="" alt="Hareket görseli" loading="lazy">
       <p id="dayDesc"></p>
-
-      <!-- Set sayacı -->
       <div id="setCounterArea">
         <div id="setDisplay">Set: 0</div>
         <button id="setBtn" class="small">Set Tamamlandı</button><br>
         <small>(Sıfırlamak için sayıya uzun bas)</small>
       </div>
-
-      <!-- Timer -->
       <div id="timer">
         <div id="timerDisplay">00:00</div>
         <button id="startTimerBtn" class="alt small">Başlat</button>
         <button id="stopTimerBtn"  class="danger small">Dur</button>
         <button id="resetTimerBtn" class="small">Sıfırla</button>
       </div>
-
-      <!-- Kontrol butonları -->
       <div style="text-align:center;margin-top:20px;display:flex;justify-content:center;flex-wrap:wrap;gap:6px;">
         <button id="doneBtn">Tamamlandı ✓</button>
         <button id="resetDayBtn" class="alt">Günü Sıfırla</button>
