@@ -1,0 +1,20 @@
+{
+  "name": "30 Günlük Şınav Meydan Okuması",
+  "short_name": "Şınav30",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#1abc9c",
+  "theme_color": "#1abc9c",
+  "icons": [
+    {
+      "src": "img/normal_pushup.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "img/normal_pushup.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
