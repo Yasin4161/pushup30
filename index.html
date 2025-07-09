@@ -2,467 +2,878 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌾 Çiftlik İmparatorluğu - Ultimate Edition 🌾</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🏎️ Speed Rush 3D - Mobile Racing</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
     <style>
-        :root {
-            --primary-green: #22c55e;
-            --secondary-green: #16a34a;
-            --accent-yellow: #fbbf24;
-            --accent-orange: #fb923c;
-            --dark-brown: #8B4513;
-            --light-brown: #D2B48C;
-            --sky-blue: #87CEEB;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
         }
         
-        body { 
-            font-family: 'Nunito', sans-serif; 
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+        body {
+            font-family: 'Exo 2', sans-serif;
             overflow: hidden;
+            background: #000;
+            height: 100vh;
+            position: relative;
         }
         
-        .game-container { 
-            backdrop-filter: blur(10px);
-            background: rgba(30, 41, 59, 0.95);
-            border: 2px solid rgba(34, 197, 94, 0.3);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
         }
         
-        canvas { 
-            background: linear-gradient(180deg, #87CEEB 0%, #98fb98 30%, #22c55e 100%);
-            border-radius: 1rem; 
-            border: 4px solid var(--dark-brown); 
-            box-shadow: 
-                inset 0 0 30px rgba(0,0,0,0.3),
-                0 10px 30px rgba(0,0,0,0.5);
-        }
-        
-        .control-btn, .action-btn { 
-            width: 70px; 
-            height: 70px; 
-            border-radius: 50%; 
-            background: linear-gradient(145deg, var(--accent-yellow), var(--accent-orange));
-            border: 3px solid #f59e0b; 
-            box-shadow: 
-                0 8px 15px rgba(0,0,0,0.3),
-                inset 0 2px 5px rgba(255,255,255,0.2);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            cursor: pointer;
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 1.8rem;
-        }
-        
-        .control-btn:hover, .action-btn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
-        }
-        
-        .control-btn:active, .action-btn:active { 
-            transform: translateY(1px) scale(0.95); 
-        }
-        
-        .resource-card {
-            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(51, 65, 85, 0.9));
-            border: 2px solid rgba(34, 197, 94, 0.3);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
-        }
-        
-        .floating-number {
+        /* Start Screen */
+        .start-screen {
             position: absolute;
-            font-weight: 700;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #0f0f23, #1a1a3a, #2d2d5a);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: backgroundPulse 4s infinite alternate;
+        }
+        
+        @keyframes backgroundPulse {
+            0% { background: linear-gradient(45deg, #0f0f23, #1a1a3a, #2d2d5a); }
+            100% { background: linear-gradient(45deg, #1a1a3a, #2d2d5a, #3a3a6a); }
+        }
+        
+        .game-title {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(2rem, 8vw, 4rem);
+            font-weight: 900;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88;
+            animation: titleGlow 2s infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88; }
+            100% { text-shadow: 0 0 30px #00ff88, 0 0 60px #00ff88, 0 0 80px #00ff88; }
+        }
+        
+        .play-button {
+            padding: 1rem 3rem;
             font-size: 1.5rem;
-            pointer-events: none;
-            animation: floatUp 2s ease-out forwards;
-            z-index: 1000;
-        }
-        
-        @keyframes floatUp {
-            0% { transform: translateY(0); opacity: 1; scale: 0.8; }
-            50% { scale: 1.2; }
-            100% { transform: translateY(-80px); opacity: 0; scale: 1; }
-        }
-        
-        .achievement-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
-            color: #000;
-            padding: 20px;
-            border-radius: 15px;
             font-weight: 700;
-            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.5);
-            z-index: 1000;
-            animation: slideInRight 0.5s ease-out, slideOutRight 0.5s ease-in 3s forwards;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
         }
         
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        .play-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.5);
         }
         
-        @keyframes slideOutRight {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
+        /* Game Canvas */
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #87CEEB 0%, #98FB98 100%);
+            position: relative;
         }
         
-        .weather-widget {
+        /* UI Overlay */
+        .ui-overlay {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(0,0,0,0.8);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .ui-overlay > * {
+            pointer-events: auto;
+        }
+        
+        /* Speed HUD */
+        .speed-hud {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(0, 0, 0, 0.8);
             border-radius: 15px;
-            padding: 15px;
+            padding: 1rem;
+            color: #00ff88;
+            font-family: 'Orbitron', monospace;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 2px solid #00ff88;
+        }
+        
+        .speed-number {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+        }
+        
+        .speed-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        /* Score HUD */
+        .score-hud {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 1rem;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            backdrop-filter: blur(10px);
+            border: 2px solid #ffd700;
+        }
+        
+        .score-number {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #ffd700;
+        }
+        
+        /* Mobile Controls */
+        .mobile-controls {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .steering-wheel {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, #333, #111);
+            border-radius: 50%;
+            border: 4px solid #555;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .steering-wheel::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #666, #333);
+            border-radius: 50%;
+            border: 2px solid #777;
+        }
+        
+        .steering-wheel::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 40px;
+            background: #fff;
+            border-radius: 2px;
+        }
+        
+        .control-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: none;
             color: white;
             font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .accelerate-btn {
+            background: linear-gradient(45deg, #00ff88, #00cc6a);
+        }
+        
+        .brake-btn {
+            background: linear-gradient(45deg, #ff4757, #ff3838);
+        }
+        
+        .control-button:active {
+            transform: scale(0.9);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Road Animation */
+        .road {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, transparent 45%, #fff 48%, #fff 50%, #fff 52%, transparent 55%),
+                linear-gradient(0deg, #333 0%, #555 100%);
+            animation: roadMove 0.5s linear infinite;
+        }
+        
+        @keyframes roadMove {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100px); }
+        }
+        
+        /* Car */
+        .player-car {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 120px;
+            background: linear-gradient(0deg, #ff6b6b, #ff8e53, #ffb347);
+            border-radius: 30% 30% 10% 10%;
+            box-shadow: 
+                0 0 20px rgba(255, 107, 107, 0.5),
+                inset 0 -20px 0 rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s ease;
+        }
+        
+        .player-car::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 5px;
+        }
+        
+        .player-car::after {
+            content: '';
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 15px;
+            background: #333;
+            border-radius: 3px;
+        }
+        
+        /* Enemy Cars */
+        .enemy-car {
+            position: absolute;
+            width: 50px;
+            height: 100px;
+            background: linear-gradient(0deg, #4ecdc4, #44a08d);
+            border-radius: 25% 25% 10% 10%;
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.5);
+            animation: enemyMove 3s linear infinite;
+        }
+        
+        @keyframes enemyMove {
+            0% { transform: translateY(-100px); }
+            100% { transform: translateY(100vh); }
+        }
+        
+        /* Effects */
+        .exhaust {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 30px;
+            background: radial-gradient(ellipse, rgba(255, 255, 255, 0.8), transparent);
+            border-radius: 50%;
+            animation: exhaustPuff 0.3s infinite alternate;
+        }
+        
+        @keyframes exhaustPuff {
+            0% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+            100% { transform: translateX(-50%) scale(1.5); opacity: 0.3; }
+        }
+        
+        /* Particle Effects */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #fff;
+            border-radius: 50%;
+            animation: particleMove 2s linear infinite;
+        }
+        
+        @keyframes particleMove {
+            0% { 
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% { 
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        /* Game Over Screen */
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
             backdrop-filter: blur(10px);
         }
         
-        .season-widget {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: rgba(0,0,0,0.8);
-            border-radius: 15px;
-            padding: 12px 18px;
+        .game-over-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            color: #ff4757;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px #ff4757;
+        }
+        
+        .final-score {
+            font-size: 2rem;
+            color: #ffd700;
+            margin-bottom: 2rem;
+        }
+        
+        .restart-button {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, #00ff88, #00cc6a);
+            border: none;
+            border-radius: 25px;
             color: white;
+            cursor: pointer;
             font-weight: 600;
-            backdrop-filter: blur(10px);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .speed-hud, .score-hud {
+                top: 1rem;
+                padding: 0.8rem;
+            }
+            
+            .speed-number, .score-number {
+                font-size: 1.5rem;
+            }
+            
+            .mobile-controls {
+                gap: 1rem;
+            }
+            
+            .steering-wheel {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .control-button {
+                width: 70px;
+                height: 70px;
+                font-size: 1.5rem;
+            }
+        }
+        
+        @media (orientation: landscape) and (max-height: 500px) {
+            .speed-hud, .score-hud {
+                top: 0.5rem;
+                padding: 0.5rem;
+            }
+            
+            .mobile-controls {
+                bottom: 1rem;
+                gap: 0.5rem;
+            }
+        }
+        
+        /* Loading Animation */
+        .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .loading-car {
+            width: 80px;
+            height: 40px;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            border-radius: 10px;
+            position: relative;
+            animation: loadingBounce 1s infinite ease-in-out;
+        }
+        
+        @keyframes loadingBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .loading-text {
+            color: white;
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            animation: textPulse 1.5s infinite;
+        }
+        
+        @keyframes textPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen">
-
-    <!-- BAŞLANGIÇ EKRANI -->
-    <div id="start-screen" class="w-full h-screen flex flex-col items-center justify-center text-white relative overflow-hidden">
-        <!-- Animated Background -->
-        <div class="absolute inset-0 bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 opacity-20"></div>
-        
-        <!-- Floating Farm Elements -->
-        <div class="absolute top-20 left-20 text-6xl animate-bounce" style="animation-delay: 0s;">🌾</div>
-        <div class="absolute top-40 right-32 text-5xl animate-bounce" style="animation-delay: 1s;">🐄</div>
-        <div class="absolute bottom-32 left-40 text-4xl animate-bounce" style="animation-delay: 2s;">🏡</div>
-        <div class="absolute bottom-20 right-20 text-5xl animate-bounce" style="animation-delay: 1.5s;">🌸</div>
-        <div class="absolute top-1/3 left-1/4 text-3xl animate-bounce" style="animation-delay: 0.5s;">🚜</div>
-        <div class="absolute bottom-1/3 right-1/4 text-4xl animate-bounce" style="animation-delay: 2.5s;">🌻</div>
-        
-        <div class="relative z-10 text-center">
-            <h1 class="text-6xl md:text-9xl font-black mb-6 bg-gradient-to-r from-yellow-400 via-green-500 to-blue-500 bg-clip-text text-transparent" 
-                style="font-family: 'Fredoka', cursive; text-shadow: 4px 4px 8px rgba(0,0,0,0.5);">
-                🌾 Çiftlik İmparatorluğu 🌾
-            </h1>
-            <p class="text-2xl md:text-3xl mb-4 text-green-200 font-bold">Ultimate Edition</p>
-            <p class="text-lg md:text-xl mb-12 text-green-300 max-w-3xl mx-auto font-semibold">
-                Hayallerinizdeki çiftliği kurun! Ekin ekin, hayvan besleyin, üretim yapın ve zengin olun!<br>
-                <span class="text-yellow-300">✨ Yeni: Hava durumu, sezonlar, başarılar ve daha fazlası! ✨</span>
-            </p>
-            <button id="play-btn" class="group relative bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-8 px-16 rounded-3xl text-4xl shadow-2xl transform hover:scale-110 transition-all duration-300 border-4 border-green-400">
-                <span class="relative z-10 flex items-center gap-4">
-                    <i class="fas fa-play"></i>
-                    Çiftliğe Başla!
-                </span>
-                <div class="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-3xl opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
-            </button>
-            <div class="mt-8 text-green-200 space-y-2">
-                <p><i class="fas fa-keyboard"></i> WASD veya ok tuşları ile hareket edin</p>
-                <p><i class="fas fa-mouse"></i> Nesnelere yaklaşıp etkileşim kurun</p>
-                <p><i class="fas fa-trophy"></i> Başarıları tamamlayın ve seviye atlayın!</p>
-            </div>
-        </div>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-car"></div>
+        <div class="loading-text">Yükleniyor...</div>
     </div>
 
-    <!-- OYUN EKRANI -->
-    <div id="game-container" class="game-container text-white rounded-3xl p-8 flex-col gap-6 hidden w-full max-w-7xl h-screen max-h-screen relative">
-        <!-- Hava Durumu ve Sezon -->
-        <div class="weather-widget" id="weather-widget">☀️</div>
-        <div class="season-widget" id="season-widget">🌸 İlkbahar</div>
+    <!-- Start Screen -->
+    <div class="start-screen" id="startScreen">
+        <h1 class="game-title">🏎️ SPEED RUSH 3D</h1>
+        <p style="color: #fff; font-size: 1.2rem; margin-bottom: 2rem; text-align: center; max-width: 80%;">
+            Gerçekçi grafiklere sahip en hızlı mobil yarış oyunu!<br>
+            <span style="color: #00ff88;">Dokunmatik kontroller ile tam kontrol</span>
+        </p>
+        <button class="play-button" id="playButton">
+            <i class="fas fa-play"></i> YARIŞA BAŞLA
+        </button>
+    </div>
+
+    <!-- Game Container -->
+    <div class="game-container" id="gameContainer" style="display: none;">
+        <!-- Road Background -->
+        <div class="road" id="road"></div>
         
-        <!-- Kaynak Paneli -->
-        <div class="resource-card rounded-2xl p-6">
-            <div class="grid grid-cols-4 md:grid-cols-8 gap-4 text-center">
-                <div class="bg-yellow-500/20 rounded-xl p-3 border border-yellow-500/30">
-                    <div class="text-3xl mb-1">💰</div>
-                    <div class="font-bold text-yellow-400 text-xl" id="money">2000</div>
-                    <div class="text-xs text-yellow-300">Altın</div>
-                </div>
-                <div class="bg-purple-500/20 rounded-xl p-3 border border-purple-500/30">
-                    <div class="text-3xl mb-1">💎</div>
-                    <div class="font-bold text-purple-400 text-xl" id="gems">5</div>
-                    <div class="text-xs text-purple-300">Elmas</div>
-                </div>
-                <div class="bg-blue-500/20 rounded-xl p-3 border border-blue-500/30">
-                    <div class="text-3xl mb-1">🥛</div>
-                    <div class="font-bold text-blue-400 text-xl" id="milk">0</div>
-                    <div class="text-xs text-blue-300">Süt</div>
-                </div>
-                <div class="bg-yellow-600/20 rounded-xl p-3 border border-yellow-600/30">
-                    <div class="text-3xl mb-1">🥚</div>
-                    <div class="font-bold text-yellow-400 text-xl" id="egg">0</div>
-                    <div class="text-xs text-yellow-300">Yumurta</div>
-                </div>
-                <div class="bg-amber-600/20 rounded-xl p-3 border border-amber-600/30">
-                    <div class="text-3xl mb-1">🪵</div>
-                    <div class="font-bold text-amber-400 text-xl" id="wood">0</div>
-                    <div class="text-xs text-amber-300">Odun</div>
-                </div>
-                <div class="bg-green-600/20 rounded-xl p-3 border border-green-600/30">
-                    <div class="text-3xl mb-1">🌾</div>
-                    <div class="font-bold text-green-400 text-xl" id="wheat">0</div>
-                    <div class="text-xs text-green-300">Buğday</div>
-                </div>
-                <div class="bg-orange-600/20 rounded-xl p-3 border border-orange-600/30">
-                    <div class="text-3xl mb-1">🥡</div>
-                    <div class="font-bold text-orange-400 text-xl" id="flour">0</div>
-                    <div class="text-xs text-orange-300">Un</div>
-                </div>
-                <div class="bg-red-600/20 rounded-xl p-3 border border-red-600/30">
-                    <div class="text-3xl mb-1">🍞</div>
-                    <div class="font-bold text-red-400 text-xl" id="bread">0</div>
-                    <div class="text-xs text-red-300">Ekmek</div>
-                </div>
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- Player Car -->
+        <div class="player-car" id="playerCar">
+            <div class="exhaust"></div>
+        </div>
+        
+        <!-- UI Overlay -->
+        <div class="ui-overlay">
+            <!-- Speed HUD -->
+            <div class="speed-hud">
+                <div class="speed-number" id="speedDisplay">0</div>
+                <div class="speed-label">KM/H</div>
             </div>
-        </div>
-        
-        <!-- Mesaj Kutusu -->
-        <div id="message-box" class="bg-black/40 backdrop-blur rounded-xl p-4 text-center font-bold text-lg min-h-[60px] flex items-center justify-center border border-green-500/30"></div>
-        
-        <!-- Oyun Alanı -->
-        <div class="flex-grow flex items-center justify-center relative">
-            <canvas id="game-canvas" class="relative"></canvas>
-            <div id="effects-container" class="absolute inset-0 pointer-events-none"></div>
-        </div>
-        
-        <!-- Kontrol Paneli -->
-        <div class="flex flex-col lg:flex-row items-center justify-between gap-6 bg-slate-800/60 rounded-2xl p-6 backdrop-blur">
-            <!-- Hareket Kontrolleri -->
-            <div class="flex flex-col items-center">
-                <div class="text-sm text-gray-300 mb-3 font-bold">🚶 Hareket</div>
-                <div class="grid grid-cols-3 gap-3">
-                    <div></div> 
-                    <button id="up-btn" class="control-btn">
-                        <i class="fas fa-chevron-up"></i>
-                    </button> 
-                    <div></div>
-                    <button id="left-btn" class="control-btn">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button id="down-btn" class="control-btn">
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <button id="right-btn" class="control-btn">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
+            
+            <!-- Score HUD -->
+            <div class="score-hud">
+                <div>SKOR: <span class="score-number" id="scoreDisplay">0</span></div>
+                <div style="font-size: 0.8rem; margin-top: 0.5rem;">
+                    EN YÜKSEK: <span id="highScoreDisplay">0</span>
                 </div>
             </div>
             
-            <!-- Ana Eylemler -->
-            <div class="flex flex-col items-center gap-4">
-                <div class="text-sm text-gray-300 font-bold">🎮 Oyun Menüsü</div>
-                <div class="flex gap-4">
-                    <button id="market-btn" class="action-btn bg-gradient-to-r from-green-500 to-green-600" title="Pazar">
-                        <i class="fas fa-store"></i>
-                    </button>
-                    <button id="hire-btn" class="action-btn bg-gradient-to-r from-blue-500 to-blue-600" title="Yardımcı Kirala">
-                        <i class="fas fa-user-plus"></i>
-                    </button>
-                    <button id="achievements-btn" class="action-btn bg-gradient-to-r from-purple-500 to-purple-600" title="Başarılar">
-                        <i class="fas fa-trophy"></i>
-                    </button>
-                    <button id="settings-btn" class="action-btn bg-gradient-to-r from-gray-500 to-gray-600" title="Ayarlar">
-                        <i class="fas fa-cog"></i>
-                    </button>
-                </div>
+            <!-- Mobile Controls -->
+            <div class="mobile-controls">
+                <button class="control-button brake-btn" id="brakeBtn">
+                    <i class="fas fa-stop"></i>
+                </button>
+                
+                <div class="steering-wheel" id="steeringWheel"></div>
+                
+                <button class="control-button accelerate-btn" id="accelerateBtn">
+                    <i class="fas fa-bolt"></i>
+                </button>
             </div>
-            
-            <!-- Hızlı Eylemler -->
-            <div class="flex flex-col items-center">
-                <div class="text-sm text-gray-300 mb-3 font-bold">⚡ Hızlı İşlemler</div>
-                <div class="flex gap-3">
-                    <button id="auto-collect-btn" class="action-btn bg-gradient-to-r from-amber-500 to-amber-600" title="Otomatik Toplama">
-                        <i class="fas fa-magic"></i>
-                    </button>
-                    <button id="sell-all-btn" class="action-btn bg-gradient-to-r from-red-500 to-red-600" title="Hepsini Sat">
-                        <i class="fas fa-coins"></i>
-                    </button>
-                </div>
-            </div>
+        </div>
+        
+        <!-- Game Over Screen -->
+        <div class="game-over" id="gameOverScreen">
+            <h2 class="game-over-title">YARIŞ BİTTİ!</h2>
+            <div class="final-score" id="finalScore">Skorunuz: 0</div>
+            <button class="restart-button" id="restartButton">
+                <i class="fas fa-redo"></i> TEKRAR OYNA
+            </button>
         </div>
     </div>
 
     <script>
-        // === ÇIFTLIK OYUNU - ULTIMATE EDITION ===
+        // === SPEED RUSH 3D - MOBILE RACING GAME ===
         
-        class FarmGameUltimate {
+        class SpeedRush3D {
             constructor() {
-                this.canvas = document.getElementById('game-canvas');
+                this.canvas = document.getElementById('gameCanvas');
                 this.ctx = this.canvas.getContext('2d');
-                this.TILE_SIZE = 50;
-                this.BOARD_WIDTH = 20;
-                this.BOARD_HEIGHT = 15;
+                this.setupCanvas();
                 
-                this.canvas.width = this.BOARD_WIDTH * this.TILE_SIZE;
-                this.canvas.height = this.BOARD_HEIGHT * this.TILE_SIZE;
-                
-                this.initializeGame();
-                this.setupEvents();
-                this.loadAchievements();
-            }
-            
-            initializeGame() {
                 this.gameState = {
-                    player: { 
-                        x: this.BOARD_WIDTH / 2 * this.TILE_SIZE, 
-                        y: this.BOARD_HEIGHT / 2 * this.TILE_SIZE,
-                        speed: 4
-                    },
-                    resources: {
-                        money: 2000, gems: 5, milk: 0, egg: 0, wood: 0,
-                        wheat: 0, flour: 0, bread: 0
-                    },
-                    world: {
-                        season: 0, // 0: İlkbahar, 1: Yaz, 2: Sonbahar, 3: Kış
-                        weather: 'sunny',
-                        time: 0
-                    },
-                    buildings: new Map(),
-                    helpers: [],
-                    customers: [],
-                    effects: [],
-                    achievements: []
+                    isPlaying: false,
+                    score: 0,
+                    highScore: localStorage.getItem('speedRushHighScore') || 0,
+                    speed: 0,
+                    maxSpeed: 200,
+                    acceleration: 0.5,
+                    deceleration: 0.3,
+                    carX: 0,
+                    carRotation: 0,
+                    roadOffset: 0,
+                    enemyCars: [],
+                    particles: [],
+                    lastTime: 0
                 };
                 
-                this.keys = { up: false, down: false, left: false, right: false };
-                this.lastInteraction = 0;
+                this.controls = {
+                    accelerating: false,
+                    braking: false,
+                    steering: 0 // -1 to 1
+                };
                 
-                this.initializeBuildings();
-                this.initializeAudio();
+                this.sounds = this.initializeSounds();
+                this.setupEventListeners();
+                this.showLoadingScreen();
             }
             
-            initializeBuildings() {
-                const buildings = [
-                    { id: 'cow1', type: 'cow', x: 3, y: 6, owned: true, level: 1, ready: true, cooldown: 0 },
-                    { id: 'chicken1', type: 'chicken', x: 6, y: 6, owned: true, level: 1, ready: true, cooldown: 0 },
-                    { id: 'wheat1', type: 'wheat', x: 9, y: 6, owned: true, level: 1, ready: true, cooldown: 0 },
-                    { id: 'tree1', type: 'tree', x: 12, y: 6, owned: true, level: 1, ready: true, cooldown: 0 },
-                    { id: 'oven1', type: 'oven', x: 15, y: 6, owned: true, level: 1, processing: false, hasProduct: false },
-                    { id: 'market1', type: 'market', x: 10, y: 2, owned: true, level: 1 }
-                ];
+            setupCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
                 
-                buildings.forEach(building => {
-                    this.gameState.buildings.set(building.id, building);
+                window.addEventListener('resize', () => {
+                    this.canvas.width = window.innerWidth;
+                    this.canvas.height = window.innerHeight;
                 });
             }
             
-            initializeAudio() {
-                this.sounds = {};
-                this.audioEnabled = true;
+            initializeSounds() {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 
-                if (typeof Tone !== 'undefined') {
-                    this.sounds.collect = new Tone.Synth().toDestination();
-                    this.sounds.sell = new Tone.Synth().toDestination();
-                    this.sounds.error = new Tone.Synth().toDestination();
-                }
+                return {
+                    playEngineSound: () => {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.frequency.value = 100 + this.gameState.speed * 2;
+                        gainNode.gain.value = 0.1;
+                        
+                        oscillator.start();
+                        oscillator.stop(audioContext.currentTime + 0.1);
+                    },
+                    
+                    playCrashSound: () => {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.frequency.value = 150;
+                        oscillator.type = 'sawtooth';
+                        gainNode.gain.value = 0.3;
+                        
+                        oscillator.start();
+                        oscillator.stop(audioContext.currentTime + 0.5);
+                    }
+                };
             }
             
-            setupEvents() {
-                // Başlat butonu
-                document.getElementById('play-btn').addEventListener('click', () => this.startGame());
-                
-                // Klavye kontrolleri
-                window.addEventListener('keydown', (e) => this.handleKeyDown(e));
-                window.addEventListener('keyup', (e) => this.handleKeyUp(e));
-                
-                // Buton kontrolleri
-                document.getElementById('up-btn').addEventListener('mousedown', () => this.keys.up = true);
-                document.getElementById('up-btn').addEventListener('mouseup', () => this.keys.up = false);
-                document.getElementById('down-btn').addEventListener('mousedown', () => this.keys.down = true);
-                document.getElementById('down-btn').addEventListener('mouseup', () => this.keys.down = false);
-                document.getElementById('left-btn').addEventListener('mousedown', () => this.keys.left = true);
-                document.getElementById('left-btn').addEventListener('mouseup', () => this.keys.left = false);
-                document.getElementById('right-btn').addEventListener('mousedown', () => this.keys.right = true);
-                document.getElementById('right-btn').addEventListener('mouseup', () => this.keys.right = false);
-                
-                // Eylem butonları
-                document.getElementById('market-btn').addEventListener('click', () => this.openMarket());
-                document.getElementById('auto-collect-btn').addEventListener('click', () => this.autoCollect());
-                document.getElementById('sell-all-btn').addEventListener('click', () => this.sellAll());
+            showLoadingScreen() {
+                setTimeout(() => {
+                    document.getElementById('loadingScreen').style.display = 'none';
+                }, 2000);
             }
             
-            startGame() {
-                document.getElementById('start-screen').classList.add('hidden');
-                document.getElementById('game-container').classList.remove('hidden');
-                document.getElementById('game-container').classList.add('flex');
+            setupEventListeners() {
+                // Play button
+                document.getElementById('playButton').addEventListener('click', () => {
+                    this.startGame();
+                });
                 
-                this.showMessage('🌟 Çiftliğe hoş geldiniz! Hayallerinizi gerçekleştirin!', 'success');
-                this.gameLoop();
+                // Restart button
+                document.getElementById('restartButton').addEventListener('click', () => {
+                    this.restartGame();
+                });
+                
+                // Mobile controls
+                this.setupMobileControls();
+                
+                // Keyboard controls (fallback)
+                this.setupKeyboardControls();
+                
+                // Touch events for mobile optimization
+                document.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+                document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
             }
             
-            gameLoop() {
-                this.update();
-                this.render();
-                requestAnimationFrame(() => this.gameLoop());
-            }
-            
-            update() {
-                // Oyuncu hareketi
-                if (this.keys.up && this.gameState.player.y > 0) 
-                    this.gameState.player.y -= this.gameState.player.speed;
-                if (this.keys.down && this.gameState.player.y < this.canvas.height - this.TILE_SIZE) 
-                    this.gameState.player.y += this.gameState.player.speed;
-                if (this.keys.left && this.gameState.player.x > 0) 
-                    this.gameState.player.x -= this.gameState.player.speed;
-                if (this.keys.right && this.gameState.player.x < this.canvas.width - this.TILE_SIZE) 
-                    this.gameState.player.x += this.gameState.player.speed;
+            setupMobileControls() {
+                const accelerateBtn = document.getElementById('accelerateBtn');
+                const brakeBtn = document.getElementById('brakeBtn');
+                const steeringWheel = document.getElementById('steeringWheel');
                 
-                // Binalar güncelle
-                this.updateBuildings();
+                // Accelerate button
+                accelerateBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.controls.accelerating = true;
+                    accelerateBtn.style.transform = 'scale(0.9)';
+                });
                 
-                // Etkileşimler kontrol et
-                this.checkInteractions();
+                accelerateBtn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    this.controls.accelerating = false;
+                    accelerateBtn.style.transform = 'scale(1)';
+                });
                 
-                // UI güncelle
-                this.updateUI();
+                // Brake button
+                brakeBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.controls.braking = true;
+                    brakeBtn.style.transform = 'scale(0.9)';
+                });
                 
-                // Dünya sistemi güncelle
-                this.updateWorld();
-            }
-            
-            updateBuildings() {
-                this.gameState.buildings.forEach(building => {
-                    if (building.cooldown > 0) {
-                        building.cooldown--;
-                        if (building.cooldown <= 0) {
-                            building.ready = true;
-                        }
+                brakeBtn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    this.controls.braking = false;
+                    brakeBtn.style.transform = 'scale(1)';
+                });
+                
+                // Steering wheel
+                let isDragging = false;
+                let startX = 0;
+                
+                steeringWheel.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    isDragging = true;
+                    startX = e.touches[0].clientX;
+                });
+                
+                document.addEventListener('touchmove', (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    
+                    const currentX = e.touches[0].clientX;
+                    const deltaX = currentX - startX;
+                    const maxRotation = 45;
+                    
+                    this.controls.steering = Math.max(-1, Math.min(1, deltaX / 100));
+                    const rotation = this.controls.steering * maxRotation;
+                    
+                    steeringWheel.style.transform = `rotate(${rotation}deg)`;
+                });
+                
+                document.addEventListener('touchend', () => {
+                    if (isDragging) {
+                        isDragging = false;
+                        this.controls.steering = 0;
+                        steeringWheel.style.transform = 'rotate(0deg)';
                     }
                 });
             }
             
-            checkInteractions() {
-                const playerRect = {
-                    x: this.gameState.player.x - this.TILE_SIZE/2,
-                    y: this.gameState.player.y - this.TILE_SIZE/2,
-                    width: this.TILE_SIZE,
-                    height: this.TILE_SIZE
+            setupKeyboardControls() {
+                document.addEventListener('keydown', (e) => {
+                    switch(e.code) {
+                        case 'ArrowUp':
+                        case 'KeyW':
+                            this.controls.accelerating = true;
+                            break;
+                        case 'ArrowDown':
+                        case 'KeyS':
+                            this.controls.braking = true;
+                            break;
+                        case 'ArrowLeft':
+                        case 'KeyA':
+                            this.controls.steering = -1;
+                            break;
+                        case 'ArrowRight':
+                        case 'KeyD':
+                            this.controls.steering = 1;
+                            break;
+                    }
+                });
+                
+                document.addEventListener('keyup', (e) => {
+                    switch(e.code) {
+                        case 'ArrowUp':
+                        case 'KeyW':
+                            this.controls.accelerating = false;
+                            break;
+                        case 'ArrowDown':
+                        case 'KeyS':
+                            this.controls.braking = false;
+                            break;
+                        case 'ArrowLeft':
+                        case 'KeyA':
+                        case 'ArrowRight':
+                        case 'KeyD':
+                            this.controls.steering = 0;
+                            break;
+                    }
+                });
+            }
+            
+            startGame() {
+                document.getElementById('startScreen').style.display = 'none';
+                document.getElementById('gameContainer').style.display = 'block';
+                
+                this.gameState.isPlaying = true;
+                this.gameState.score = 0;
+                this.gameState.speed = 0;
+                this.gameState.carX = 0;
+                this.gameState.enemyCars = [];
+                this.gameState.particles = [];
+                
+                document.getElementById('highScoreDisplay').textContent = this.gameState.highScore;
+                
+                this.gameLoop();
+                this.spawnEnemyLoop();
+            }
+            
+            restartGame() {
+                document.getElementById('gameOverScreen').style.display = 'none';
+                this.startGame();
+            }
+            
+            gameLoop() {
+                if (!this.gameState.isPlaying) return;
+                
+                const currentTime = performance.now();
+                const deltaTime = (currentTime - this.gameState.lastTime) / 16.67; // 60 FPS
+                this.gameState.lastTime = currentTime;
+                
+                this.update(deltaTime);
+                this.render();
+                this.updateUI();
+                
+                requestAnimationFrame(() => this.gameLoop());
+            }
+            
+            update(deltaTime) {
+                // Car physics
+                if (this.controls.accelerating) {
+                    this.gameState.speed = Math.min(
+                        this.gameState.maxSpeed,
+                        this.gameState.speed + this.gameState.acceleration * deltaTime
+                    );
+                    this.sounds.playEngineSound();
+                } else if (this.controls.braking) {
+                    this.gameState.speed = Math.max(
+                        0,
+                        this.gameState.speed - this.gameState.deceleration * 2 * deltaTime
+                    );
+                } else {
+                    this.gameState.speed = Math.max(
+                        0,
+                        this.gameState.speed - this.gameState.deceleration * deltaTime
+                    );
+                }
+                
+                // Steering
+                this.gameState.carX += this.controls.steering * this.gameState.speed * 0.01 * deltaTime;
+                this.gameState.carX = Math.max(-this.canvas.width * 0.4, 
+                                           Math.min(this.canvas.width * 0.4, this.gameState.carX));
+                
+                // Road animation
+                this.gameState.roadOffset += this.gameState.speed * 0.1 * deltaTime;
+                
+                // Score
+                this.gameState.score += Math.floor(this.gameState.speed * 0.1 * deltaTime);
+                
+                // Update enemy cars
+                this.updateEnemyCars(deltaTime);
+                
+                // Update particles
+                this.updateParticles(deltaTime);
+                
+                // Collision detection
+                this.checkCollisions();
+            }
+            
+            updateEnemyCars(deltaTime) {
+                this.gameState.enemyCars.forEach((car, index) => {
+                    car.y += (this.gameState.speed + 50) * deltaTime;
+                    
+                    if (car.y > this.canvas.height + 100) {
+                        this.gameState.enemyCars.splice(index, 1);
+                    }
+                });
+            }
+            
+            updateParticles(deltaTime) {
+                this.gameState.particles.forEach((particle, index) => {
+                    particle.y += particle.speed * deltaTime;
+                    particle.life -= deltaTime;
+                    
+                    if (particle.life <= 0) {
+                        this.gameState.particles.splice(index, 1);
+                    }
+                });
+            }
+            
+            checkCollisions() {
+                const playerCarRect = {
+                    x: this.canvas.width / 2 + this.gameState.carX - 30,
+                    y: this.canvas.height * 0.8 - 60,
+                    width: 60,
+                    height: 120
                 };
                 
-                this.gameState.buildings.forEach(building => {
-                    const buildingRect = {
-                        x: building.x * this.TILE_SIZE,
-                        y: building.y * this.TILE_SIZE,
-                        width: this.TILE_SIZE,
-                        height: this.TILE_SIZE
+                this.gameState.enemyCars.forEach(car => {
+                    const enemyRect = {
+                        x: car.x - 25,
+                        y: car.y - 50,
+                        width: 50,
+                        height: 100
                     };
                     
-                    if (this.isColliding(playerRect, buildingRect)) {
-                        this.interactWithBuilding(building);
+                    if (this.isColliding(playerCarRect, enemyRect)) {
+                        this.gameOver();
                     }
                 });
             }
@@ -474,443 +885,180 @@
                        rect1.y + rect1.height > rect2.y;
             }
             
-            interactWithBuilding(building) {
-                if (!building.owned) return;
+            spawnEnemyLoop() {
+                if (!this.gameState.isPlaying) return;
                 
-                const now = Date.now();
-                if (now - this.lastInteraction < 500) return;
-                this.lastInteraction = now;
+                this.spawnEnemyCar();
                 
-                switch (building.type) {
-                    case 'cow':
-                        if (building.ready) {
-                            this.collectResource('milk', building.level * 2);
-                            building.ready = false;
-                            building.cooldown = 600; // 10 dakika
-                        }
-                        break;
-                        
-                    case 'chicken':
-                        if (building.ready) {
-                            this.collectResource('egg', building.level * 3);
-                            building.ready = false;
-                            building.cooldown = 480; // 8 dakika
-                        }
-                        break;
-                        
-                    case 'wheat':
-                        if (building.ready) {
-                            this.collectResource('wheat', building.level * 4);
-                            building.ready = false;
-                            building.cooldown = 720; // 12 dakika
-                        }
-                        break;
-                        
-                    case 'tree':
-                        if (building.ready) {
-                            this.collectResource('wood', building.level);
-                            building.ready = false;
-                            building.cooldown = 1800; // 30 dakika
-                        }
-                        break;
-                }
+                const spawnDelay = Math.max(1000, 3000 - this.gameState.speed * 10);
+                setTimeout(() => this.spawnEnemyLoop(), spawnDelay);
             }
             
-            collectResource(type, amount) {
-                this.gameState.resources[type] += amount;
-                this.showFloatingNumber(`+${amount}`, this.gameState.player.x, this.gameState.player.y, 'green');
-                this.showMessage(`${amount} ${type} topladınız!`, 'success');
-                this.playSound('collect', 'C5');
+            spawnEnemyCar() {
+                const lanes = [-150, -50, 50, 150];
+                const randomLane = lanes[Math.floor(Math.random() * lanes.length)];
+                
+                this.gameState.enemyCars.push({
+                    x: this.canvas.width / 2 + randomLane,
+                    y: -100,
+                    color: this.getRandomCarColor()
+                });
             }
             
-            updateWorld() {
-                this.gameState.world.time += 1;
-                
-                // Sezon değişimi (her 10 dakika)
-                if (this.gameState.world.time % 3600 === 0) {
-                    this.gameState.world.season = (this.gameState.world.season + 1) % 4;
-                    this.updateSeasonDisplay();
-                }
-                
-                // Hava durumu değişimi
-                if (Math.random() < 0.001) {
-                    const weathers = ['sunny', 'cloudy', 'rainy'];
-                    this.gameState.world.weather = weathers[Math.floor(Math.random() * weathers.length)];
-                    this.updateWeatherDisplay();
-                }
+            getRandomCarColor() {
+                const colors = [
+                    '#4ecdc4', '#45b7d1', '#f39c12', '#e74c3c', 
+                    '#9b59b6', '#2ecc71', '#ff6b6b', '#feca57'
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
             }
             
             render() {
-                // Arkaplanı temizle
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                
-                // Arkaplan çiz
-                this.drawBackground();
-                
-                // Binaları çiz
-                this.gameState.buildings.forEach(building => {
-                    this.drawBuilding(building);
-                });
-                
-                // Oyuncuyu çiz
-                this.drawPlayer();
-            }
-            
-            drawBackground() {
-                // Çimen zemini
-                this.ctx.fillStyle = '#4ade80';
+                // Clear canvas
+                this.ctx.fillStyle = 'linear-gradient(180deg, #87CEEB 0%, #98FB98 100%)';
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
                 
-                // Grid çizgileri
-                this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
-                this.ctx.lineWidth = 1;
+                // Draw road
+                this.drawRoad();
                 
-                for (let x = 0; x <= this.BOARD_WIDTH; x++) {
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x * this.TILE_SIZE, 0);
-                    this.ctx.lineTo(x * this.TILE_SIZE, this.canvas.height);
-                    this.ctx.stroke();
-                }
+                // Draw enemy cars
+                this.drawEnemyCars();
                 
-                for (let y = 0; y <= this.BOARD_HEIGHT; y++) {
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(0, y * this.TILE_SIZE);
-                    this.ctx.lineTo(this.canvas.width, y * this.TILE_SIZE);
-                    this.ctx.stroke();
-                }
+                // Draw player car
+                this.drawPlayerCar();
+                
+                // Draw particles
+                this.drawParticles();
+                
+                // Draw speed lines
+                this.drawSpeedLines();
             }
             
-            drawBuilding(building) {
-                const x = building.x * this.TILE_SIZE + this.TILE_SIZE / 2;
-                const y = building.y * this.TILE_SIZE + this.TILE_SIZE / 2;
+            drawRoad() {
+                const roadWidth = this.canvas.width * 0.8;
+                const roadX = (this.canvas.width - roadWidth) / 2;
                 
-                this.ctx.save();
-                this.ctx.translate(x, y);
+                // Road surface
+                this.ctx.fillStyle = '#333';
+                this.ctx.fillRect(roadX, 0, roadWidth, this.canvas.height);
                 
-                switch (building.type) {
-                    case 'cow':
-                        this.drawCow();
-                        break;
-                    case 'chicken':
-                        this.drawChicken();
-                        break;
-                    case 'wheat':
-                        this.drawWheat();
-                        break;
-                    case 'tree':
-                        this.drawTree();
-                        break;
-                    case 'oven':
-                        this.drawOven();
-                        break;
-                    case 'market':
-                        this.drawMarket();
-                        break;
-                }
+                // Road lines
+                this.ctx.strokeStyle = '#fff';
+                this.ctx.lineWidth = 4;
+                this.ctx.setLineDash([30, 20]);
+                this.ctx.lineDashOffset = -this.gameState.roadOffset;
                 
-                // Hazır olduğunda gösterge çiz
-                if (building.ready) {
-                    this.ctx.fillStyle = 'yellow';
-                    this.ctx.beginPath();
-                    this.ctx.arc(0, -35, 8, 0, Math.PI * 2);
-                    this.ctx.fill();
-                }
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.canvas.width / 2, 0);
+                this.ctx.lineTo(this.canvas.width / 2, this.canvas.height);
+                this.ctx.stroke();
                 
-                this.ctx.restore();
+                // Side lines
+                this.ctx.setLineDash([]);
+                this.ctx.lineWidth = 8;
+                this.ctx.beginPath();
+                this.ctx.moveTo(roadX, 0);
+                this.ctx.lineTo(roadX, this.canvas.height);
+                this.ctx.moveTo(roadX + roadWidth, 0);
+                this.ctx.lineTo(roadX + roadWidth, this.canvas.height);
+                this.ctx.stroke();
             }
             
-            drawCow() {
-                // İnek gövdesi
-                this.ctx.fillStyle = 'white';
-                this.ctx.fillRect(-20, -15, 40, 30);
-                
-                // İnek kafası
-                this.ctx.fillStyle = 'white';
-                this.ctx.beginPath();
-                this.ctx.arc(25, -10, 15, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Benekler
-                this.ctx.fillStyle = 'black';
-                this.ctx.beginPath();
-                this.ctx.arc(-10, -5, 4, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.beginPath();
-                this.ctx.arc(5, 5, 3, 0, Math.PI * 2);
-                this.ctx.fill();
-            }
-            
-            drawChicken() {
-                // Tavuk gövdesi
-                this.ctx.fillStyle = '#ffeb3b';
-                this.ctx.beginPath();
-                this.ctx.arc(0, 0, 15, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Tavuk kafası
-                this.ctx.fillStyle = '#ffeb3b';
-                this.ctx.beginPath();
-                this.ctx.arc(15, -10, 8, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Gaga
-                this.ctx.fillStyle = 'orange';
-                this.ctx.beginPath();
-                this.ctx.moveTo(20, -10);
-                this.ctx.lineTo(25, -8);
-                this.ctx.lineTo(20, -6);
-                this.ctx.fill();
-            }
-            
-            drawWheat() {
-                // Buğday sapları
-                this.ctx.strokeStyle = '#8bc34a';
-                this.ctx.lineWidth = 3;
-                
-                for (let i = -15; i <= 15; i += 8) {
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(i, 20);
-                    this.ctx.lineTo(i, -15);
-                    this.ctx.stroke();
+            drawEnemyCars() {
+                this.gameState.enemyCars.forEach(car => {
+                    this.ctx.save();
+                    this.ctx.translate(car.x, car.y);
                     
-                    // Buğday başları
-                    this.ctx.fillStyle = '#ffeb3b';
-                    this.ctx.fillRect(i - 2, -20, 4, 8);
-                }
-            }
-            
-            drawTree() {
-                // Ağaç gövdesi
-                this.ctx.fillStyle = '#8d6e63';
-                this.ctx.fillRect(-8, -10, 16, 30);
-                
-                // Ağaç yaprakları
-                this.ctx.fillStyle = '#4caf50';
-                this.ctx.beginPath();
-                this.ctx.arc(0, -20, 25, 0, Math.PI * 2);
-                this.ctx.fill();
-            }
-            
-            drawOven() {
-                // Fırın gövdesi
-                this.ctx.fillStyle = '#795548';
-                this.ctx.fillRect(-20, -15, 40, 30);
-                
-                // Fırın kapısı
-                this.ctx.fillStyle = '#3e2723';
-                this.ctx.fillRect(-15, -10, 30, 20);
-            }
-            
-            drawMarket() {
-                // Pazar tezgahı
-                this.ctx.fillStyle = '#d2b48c';
-                this.ctx.fillRect(-25, -10, 50, 20);
-                
-                // Çadır
-                this.ctx.fillStyle = '#ff5722';
-                this.ctx.beginPath();
-                this.ctx.moveTo(-30, -25);
-                this.ctx.lineTo(0, -35);
-                this.ctx.lineTo(30, -25);
-                this.ctx.lineTo(25, -10);
-                this.ctx.lineTo(-25, -10);
-                this.ctx.closePath();
-                this.ctx.fill();
-            }
-            
-            drawPlayer() {
-                const x = this.gameState.player.x;
-                const y = this.gameState.player.y;
-                
-                this.ctx.save();
-                this.ctx.translate(x, y);
-                
-                // Çiftçi vücut
-                this.ctx.fillStyle = '#2196f3';
-                this.ctx.fillRect(-15, -10, 30, 20);
-                
-                // Çiftçi kafa
-                this.ctx.fillStyle = '#ffdbcb';
-                this.ctx.beginPath();
-                this.ctx.arc(0, -20, 12, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Şapka
-                this.ctx.fillStyle = '#8d6e63';
-                this.ctx.fillRect(-15, -30, 30, 8);
-                
-                this.ctx.restore();
-            }
-            
-            handleKeyDown(e) {
-                switch (e.key) {
-                    case 'ArrowUp':
-                    case 'w':
-                    case 'W':
-                        this.keys.up = true;
-                        break;
-                    case 'ArrowDown':
-                    case 's':
-                    case 'S':
-                        this.keys.down = true;
-                        break;
-                    case 'ArrowLeft':
-                    case 'a':
-                    case 'A':
-                        this.keys.left = true;
-                        break;
-                    case 'ArrowRight':
-                    case 'd':
-                    case 'D':
-                        this.keys.right = true;
-                        break;
-                }
-            }
-            
-            handleKeyUp(e) {
-                switch (e.key) {
-                    case 'ArrowUp':
-                    case 'w':
-                    case 'W':
-                        this.keys.up = false;
-                        break;
-                    case 'ArrowDown':
-                    case 's':
-                    case 'S':
-                        this.keys.down = false;
-                        break;
-                    case 'ArrowLeft':
-                    case 'a':
-                    case 'A':
-                        this.keys.left = false;
-                        break;
-                    case 'ArrowRight':
-                    case 'd':
-                    case 'D':
-                        this.keys.right = false;
-                        break;
-                }
-            }
-            
-            openMarket() {
-                alert('Pazar sistemi yakında eklenecek!');
-            }
-            
-            autoCollect() {
-                let collected = false;
-                this.gameState.buildings.forEach(building => {
-                    if (building.ready && building.owned) {
-                        this.interactWithBuilding(building);
-                        collected = true;
-                    }
+                    // Car body
+                    this.ctx.fillStyle = car.color;
+                    this.ctx.fillRect(-25, -50, 50, 100);
+                    
+                    // Car details
+                    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                    this.ctx.fillRect(-20, -30, 40, 20);
+                    
+                    this.ctx.fillStyle = '#333';
+                    this.ctx.fillRect(-15, 30, 30, 10);
+                    
+                    this.ctx.restore();
                 });
-                
-                if (collected) {
-                    this.showMessage('✨ Tüm hazır kaynaklar toplandı!', 'success');
-                } else {
-                    this.showMessage('Henüz toplanacak kaynak yok.', 'info');
-                }
             }
             
-            sellAll() {
-                let totalEarned = 0;
-                const prices = { milk: 15, egg: 8, wheat: 6, wood: 12, flour: 18, bread: 45 };
-                
-                Object.keys(prices).forEach(resource => {
-                    if (this.gameState.resources[resource] > 0) {
-                        const amount = this.gameState.resources[resource];
-                        const earned = amount * prices[resource];
-                        totalEarned += earned;
-                        this.gameState.resources[resource] = 0;
-                    }
+            drawPlayerCar() {
+                const playerCar = document.getElementById('playerCar');
+                playerCar.style.left = `calc(50% + ${this.gameState.carX}px)`;
+                playerCar.style.transform = `translateX(-50%) rotate(${this.controls.steering * 5}deg)`;
+            }
+            
+            drawParticles() {
+                this.gameState.particles.forEach(particle => {
+                    this.ctx.save();
+                    this.ctx.globalAlpha = particle.life / 100;
+                    this.ctx.fillStyle = particle.color;
+                    this.ctx.fillRect(particle.x, particle.y, particle.size, particle.size);
+                    this.ctx.restore();
                 });
-                
-                if (totalEarned > 0) {
-                    this.gameState.resources.money += totalEarned;
-                    this.showMessage(`💰 ${totalEarned} altın kazandınız!`, 'success');
-                    this.playSound('sell', 'G5');
-                } else {
-                    this.showMessage('Satılacak ürün yok.', 'info');
+            }
+            
+            drawSpeedLines() {
+                if (this.gameState.speed > 50) {
+                    for (let i = 0; i < 10; i++) {
+                        this.ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 + this.gameState.speed / 1000})`;
+                        this.ctx.lineWidth = 2;
+                        this.ctx.beginPath();
+                        const x = Math.random() * this.canvas.width;
+                        const y = Math.random() * this.canvas.height;
+                        this.ctx.moveTo(x, y);
+                        this.ctx.lineTo(x, y + this.gameState.speed / 2);
+                        this.ctx.stroke();
+                    }
                 }
             }
             
             updateUI() {
-                document.getElementById('money').textContent = this.gameState.resources.money;
-                document.getElementById('gems').textContent = this.gameState.resources.gems;
-                document.getElementById('milk').textContent = this.gameState.resources.milk;
-                document.getElementById('egg').textContent = this.gameState.resources.egg;
-                document.getElementById('wood').textContent = this.gameState.resources.wood;
-                document.getElementById('wheat').textContent = this.gameState.resources.wheat;
-                document.getElementById('flour').textContent = this.gameState.resources.flour;
-                document.getElementById('bread').textContent = this.gameState.resources.bread;
-            }
-            
-            updateSeasonDisplay() {
-                const seasons = ['🌸 İlkbahar', '☀️ Yaz', '🍂 Sonbahar', '❄️ Kış'];
-                document.getElementById('season-widget').textContent = seasons[this.gameState.world.season];
-            }
-            
-            updateWeatherDisplay() {
-                const weathers = { sunny: '☀️', cloudy: '☁️', rainy: '🌧️' };
-                document.getElementById('weather-widget').textContent = weathers[this.gameState.world.weather];
-            }
-            
-            showMessage(text, type = 'info') {
-                const messageBox = document.getElementById('message-box');
-                messageBox.textContent = text;
-                messageBox.className = 'bg-black/40 backdrop-blur rounded-xl p-4 text-center font-bold text-lg min-h-[60px] flex items-center justify-center border border-green-500/30';
+                document.getElementById('speedDisplay').textContent = Math.floor(this.gameState.speed);
+                document.getElementById('scoreDisplay').textContent = this.gameState.score;
                 
-                if (type === 'success') {
-                    messageBox.classList.add('text-green-400', 'border-green-400');
-                } else if (type === 'error') {
-                    messageBox.classList.add('text-red-400', 'border-red-400');
-                } else {
-                    messageBox.classList.add('text-blue-400', 'border-blue-400');
+                // Animate road speed
+                const road = document.getElementById('road');
+                const animationDuration = Math.max(0.1, 1 - this.gameState.speed / 200);
+                road.style.animationDuration = `${animationDuration}s`;
+            }
+            
+            gameOver() {
+                this.gameState.isPlaying = false;
+                this.sounds.playCrashSound();
+                
+                // Update high score
+                if (this.gameState.score > this.gameState.highScore) {
+                    this.gameState.highScore = this.gameState.score;
+                    localStorage.setItem('speedRushHighScore', this.gameState.highScore);
                 }
                 
-                setTimeout(() => {
-                    messageBox.textContent = '';
-                    messageBox.className = 'bg-black/40 backdrop-blur rounded-xl p-4 text-center font-bold text-lg min-h-[60px] flex items-center justify-center border border-green-500/30';
-                }, 3000);
-            }
-            
-            showFloatingNumber(text, x, y, color = 'white') {
-                const floatingDiv = document.createElement('div');
-                floatingDiv.textContent = text;
-                floatingDiv.className = 'floating-number';
-                floatingDiv.style.left = x + 'px';
-                floatingDiv.style.top = y + 'px';
-                floatingDiv.style.color = color;
+                document.getElementById('finalScore').textContent = `Skorunuz: ${this.gameState.score}`;
+                document.getElementById('gameOverScreen').style.display = 'flex';
                 
-                document.getElementById('effects-container').appendChild(floatingDiv);
-                
+                // Add crash effect
+                document.getElementById('playerCar').style.filter = 'brightness(0.5) contrast(2)';
                 setTimeout(() => {
-                    floatingDiv.remove();
-                }, 2000);
-            }
-            
-            playSound(type, note) {
-                if (!this.audioEnabled || !this.sounds[type]) return;
-                try {
-                    this.sounds[type].triggerAttackRelease(note, '8n');
-                } catch (e) {
-                    console.error('Ses çalınamadı:', e);
-                }
-            }
-            
-            loadAchievements() {
-                // Başarı sistemi geliştirilecek
-                this.gameState.achievements = [];
+                    document.getElementById('playerCar').style.filter = '';
+                }, 1000);
             }
         }
         
-        // Oyunu başlat
-        let game = null;
-        document.getElementById('play-btn').addEventListener('click', () => {
-            if (!game) {
-                game = new FarmGameUltimate();
-            }
+        // Initialize game when page loads
+        window.addEventListener('load', () => {
+            new SpeedRush3D();
         });
+        
+        // Install service worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(registrationError => console.log('SW registration failed'));
+            });
+        }
     </script>
 </body>
 </html>
