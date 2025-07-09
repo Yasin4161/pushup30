@@ -14,8 +14,6 @@
         .control-button, .action-button { width: 60px; height: 60px; border-radius: 50%; background-color: #fbbf24; border: 2px solid #f59e0b; box-shadow: 0 5px 10px rgba(0,0,0,0.2); transition: all 0.2s ease-in-out; user-select: none; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; }
         .control-button:active, .action-button:active { transform: translateY(2px) scale(0.95); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .modal { transition: opacity 0.3s ease, visibility 0.3s ease; }
-        .xp-bar-container { background-color: #555; border-radius: 10px; padding: 2px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
-        .xp-bar { background: linear-gradient(to right, #6366f1, #a855f7); height: 16px; border-radius: 8px; transition: width 0.5s ease-out; }
     </style>
 </head>
 <body class="bg-gray-900 flex items-center justify-center h-screen">
@@ -30,15 +28,13 @@
 
     <!-- OYUN EKRANI -->
     <div id="game-container" class="game-container bg-gray-800 text-white rounded-2xl shadow-2xl p-4 flex-col gap-2 hidden">
-        <div class="grid grid-cols-3 md:grid-cols-5 gap-2 text-center bg-gray-700/80 p-2 rounded-lg text-sm md:text-base">
-            <div><span id="level-display" class="bg-purple-600 px-2 py-1 rounded-full">Lv. 1</span></div>
-            <div class="col-span-2 md:col-span-1">💰 <span id="money">0</span></div>
+        <div class="grid grid-cols-3 md:grid-cols-6 gap-2 text-center bg-gray-700/80 p-2 rounded-lg text-sm md:text-base">
+            <div>💰 <span id="money">0</span></div>
             <div>🥛 <span id="milk">0</span></div>
             <div>🥚 <span id="egg">0</span></div>
             <div>🪵 <span id="wood">0</span></div>
-            <div class="col-span-3 md:col-span-5 xp-bar-container">
-                <div id="xp-bar" class="xp-bar" style="width: 0%;"></div>
-            </div>
+            <div>🌾 <span id="wheat">0</span></div>
+            <div>🥡 <span id="flour">0</span></div>
         </div>
         <div id="message-box" class="h-10 bg-black/30 rounded-lg flex items-center justify-center p-2 text-center text-yellow-200 font-semibold"></div>
         <div class="flex-grow flex items-center justify-center"><canvas id="game-canvas"></canvas></div>
@@ -60,7 +56,7 @@
     <div id="modal-backdrop" class="modal fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 invisible opacity-0">
         <div id="modal-content" class="bg-slate-800 border border-slate-600 rounded-lg p-6 max-w-sm w-full text-white shadow-xl">
             <h2 id="modal-title" class="text-2xl font-bold mb-4 text-yellow-300"></h2>
-            <div id="modal-body" class="space-y-3"></div>
+            <div id="modal-body" class="space-y-3 max-h-96 overflow-y-auto"></div>
             <button id="modal-close-btn" class="mt-6 w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg">Kapat</button>
         </div>
     </div>
@@ -77,10 +73,7 @@
         } catch(e) {
             console.error("Initialization Error:", e);
             const messageBox = document.getElementById('message-box');
-            if (messageBox) {
-                messageBox.style.color = 'red';
-                messageBox.textContent = 'OYUN BAŞLATMA HATASI: ' + e.message;
-            }
+            if (messageBox) { messageBox.style.color = 'red'; messageBox.textContent = 'OYUN BAŞLATMA HATASI: ' + e.message; }
         }
     });
 
@@ -91,14 +84,13 @@
     canvas.width = BOARD_WIDTH * TILE_SIZE;
     canvas.height = BOARD_HEIGHT * TILE_SIZE;
 
-    // DOM Elements
     const moneyEl = document.getElementById('money');
     const milkEl = document.getElementById('milk');
     const eggEl = document.getElementById('egg');
     const woodEl = document.getElementById('wood');
+    const wheatEl = document.getElementById('wheat');
+    const flourEl = document.getElementById('flour');
     const messageBox = document.getElementById('message-box');
-    const levelDisplay = document.getElementById('level-display');
-    const xpBar = document.getElementById('xp-bar');
     const modalBackdrop = document.getElementById('modal-backdrop');
     const modalTitle = document.getElementById('modal-title');
     const modalBody = document.getElementById('modal-body');
@@ -108,55 +100,37 @@
     let audioStarted = false;
     const keys = { up: { pressed: false }, down: { pressed: false }, left: { pressed: false }, right: { pressed: false } };
 
-    const XP_FOR_ACTION = { collect: 1, craft: 5, sell: 2, build: 20 };
-    const LEVEL_THRESHOLDS = [0, 100, 250, 500, 1000, 2000, 3500, 5000]; 
-    const COOLDOWNS = { milk: 10 * 60, egg: 7 * 60, wheat: 15 * 60, wood: 30 * 60 };
-    const ITEM_PRICES = { milk: 10, egg: 5, bread: 25, wood: 8 };
+    const COOLDOWNS = { milk: 10 * 60, egg: 7 * 60, wheat: 12 * 60, wood: 30 * 60 };
+    const PROCESS_TIMES = { flour: 5 * 60, bread: 8 * 60 };
+    const ITEM_PRICES = { milk: 10, egg: 5, wood: 8, wheat: 4, flour: 12, bread: 30 };
     const COSTS = {
-        helpers: { milk: 100, egg: 150, wood: 250, baker: 300, seller: 500 },
-        buildings: { cow: 250, woodcutterHut: 400, mill: 800, bakery: 1500 }
+        helpers: { milk: 100, egg: 150, wood: 250, miller: 400, baker: 500, collector: 350, seller: 700 },
+        upgrades: { cow: 200, chicken: 150, wheat: 100, oven: 300 },
+        buildings: { marketStall: 1000, mill: 800 }
     };
+    const ITEM_EMOJIS = { milk: '🥛', egg: '🥚', wood: '🪵', wheat: '🌾', flour: '🥡', bread: '🍞' };
     const toPixels = (gridPos) => ({ x: gridPos.x * TILE_SIZE + TILE_SIZE / 2, y: gridPos.y * TILE_SIZE + TILE_SIZE / 2 });
 
     // --- SES FONKSİYONLARI ---
-    function initializeSounds() {
-        if (typeof Tone === 'undefined') { console.error("Tone.js kütüphanesi yüklenemedi."); return; }
-        sounds = {
-            synth: new Tone.Synth().toDestination(),
-            collect: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.1 } }).toDestination(),
-            sale: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination(),
-            error: new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 } }).toDestination(),
-            levelUp: new Tone.FatOscillator("Ab3", "sawtooth", 40).toDestination(),
-            background: new Tone.MembraneSynth().toDestination()
-        };
-    }
-    function playSound(type, note, duration = '8n') {
-        if (!audioStarted || !sounds[type]) return;
-        try {
-            if (type === 'levelUp') { sounds.levelUp.start().stop("+0.5"); }
-            else { sounds[type].triggerAttackRelease(note, duration); }
-        } catch (e) { console.error("Ses çalınamadı:", e); }
-    }
+    function initializeSounds() { if (typeof Tone === 'undefined') { console.error("Tone.js kütüphanesi yüklenemedi."); return; } sounds = { synth: new Tone.Synth().toDestination(), collect: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.1 } }).toDestination(), sale: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination(), error: new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 } }).toDestination(), background: new Tone.MembraneSynth().toDestination() }; }
+    function playSound(type, note, duration = '8n') { if (!audioStarted || !sounds[type]) return; try { sounds[type].triggerAttackRelease(note, duration); } catch (e) { console.error("Ses çalınamadı:", e); } }
 
     // --- ÇİZİM FONKSİYONLARI ---
-    function drawWithShadow(drawFunc) {
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)'; ctx.shadowBlur = 8; ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 4;
-        drawFunc();
-        ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
-    }
+    function drawWithShadow(drawFunc) { ctx.shadowColor = 'rgba(0, 0, 0, 0.2)'; ctx.shadowBlur = 8; ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 4; drawFunc(); ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0; }
     function drawPlayer(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#ffc0cb'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 10, 12, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#8B4513'; ctx.fillRect(pos.x - 15, pos.y - 22, 30, 8); ctx.fillRect(pos.x - 8, pos.y - 30, 16, 10); ctx.fillStyle = '#4682B4'; ctx.beginPath(); ctx.moveTo(pos.x - 10, pos.y); ctx.lineTo(pos.x + 10, pos.y); ctx.lineTo(pos.x + 15, pos.y + 25); ctx.lineTo(pos.x - 15, pos.y + 25); ctx.closePath(); ctx.fill(); }); }
     function drawCow(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = 'white'; ctx.beginPath(); ctx.ellipse(pos.x, pos.y, 30, 20, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = 'black'; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = 'black'; ctx.beginPath(); ctx.ellipse(pos.x - 15, pos.y - 5, 8, 5, -0.5, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(pos.x + 10, pos.y + 8, 10, 6, 0.7, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(pos.x + 25, pos.y - 10, 15, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(pos.x + 30, pos.y - 12, 2, 0, Math.PI * 2); ctx.fill(); }); }
     function drawChicken(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#FFFACD'; ctx.beginPath(); ctx.arc(pos.x, pos.y, 15, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(pos.x + 10, pos.y - 12, 8, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = 'red'; ctx.beginPath(); ctx.moveTo(pos.x + 8, pos.y - 20); ctx.lineTo(pos.x + 12, pos.y - 23); ctx.lineTo(pos.x + 14, pos.y - 20); ctx.fill(); ctx.fillStyle = 'orange'; ctx.beginPath(); ctx.moveTo(pos.x + 18, pos.y - 12); ctx.lineTo(pos.x + 22, pos.y - 10); ctx.lineTo(pos.x + 18, pos.y - 8); ctx.fill(); }); }
     function drawWheatField(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#f5deb3'; for(let i = -20; i < 25; i += 15) { for (let j = -20; j < 25; j += 15) { ctx.fillRect(pos.x + i, pos.y + j, 5, 15); } } }); }
     function drawTree(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#8B4513'; ctx.fillRect(pos.x - 5, pos.y - 20, 10, 40); ctx.fillStyle = '#228B22'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 30, 25, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#3CB371'; ctx.beginPath(); ctx.arc(pos.x + 10, pos.y - 40, 20, 0, Math.PI * 2); ctx.fill(); }); }
     function drawMill(ctx, pos, angle) { drawWithShadow(() => { ctx.fillStyle = '#D2B48C'; ctx.beginPath(); ctx.moveTo(pos.x - 20, pos.y + 30); ctx.lineTo(pos.x - 25, pos.y - 20); ctx.lineTo(pos.x + 25, pos.y - 20); ctx.lineTo(pos.x + 20, pos.y + 30); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#A0522D'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 20, 25, 0, Math.PI, true); ctx.fill(); ctx.save(); ctx.translate(pos.x, pos.y - 15); ctx.rotate(angle); ctx.fillStyle = '#8B4513'; ctx.fillRect(-5, -40, 10, 80); ctx.fillRect(-40, -5, 80, 10); ctx.restore(); }); }
-    function drawBakery(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#F5DEB3'; ctx.fillRect(pos.x - 30, pos.y - 20, 60, 50); ctx.fillStyle = '#D2691E'; ctx.beginPath(); ctx.moveTo(pos.x - 40, pos.y - 20); ctx.lineTo(pos.x + 40, pos.y - 20); ctx.lineTo(pos.x, pos.y - 50); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#8B4513'; ctx.fillRect(pos.x + 15, pos.y - 40, 15, 20); }); }
     function drawOven(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#A9A9A9'; ctx.fillRect(pos.x - 25, pos.y - 20, 50, 40); ctx.fillStyle = '#8B4513'; ctx.fillRect(pos.x - 28, pos.y - 23, 56, 5); ctx.fillStyle = 'black'; ctx.fillRect(pos.x - 15, pos.y, 30, 15); }); }
     function drawSalesCounter(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#D2B48C'; ctx.fillRect(pos.x - 30, pos.y - 10, 60, 20); ctx.fillStyle = '#DC143C'; ctx.beginPath(); ctx.moveTo(pos.x - 35, pos.y - 25); ctx.lineTo(pos.x + 35, pos.y - 25); ctx.lineTo(pos.x + 30, pos.y - 10); ctx.lineTo(pos.x - 30, pos.y - 10); ctx.closePath(); ctx.fill(); }); }
     function drawStorageBox(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#8B4513'; ctx.fillRect(pos.x - 20, pos.y - 15, 40, 30); ctx.strokeStyle = '#5a2d0c'; ctx.lineWidth = 3; ctx.strokeRect(pos.x - 20, pos.y - 15, 40, 30); ctx.beginPath(); ctx.moveTo(pos.x - 20, pos.y - 15); ctx.lineTo(pos.x + 20, pos.y + 15); ctx.stroke(); }); }
     function drawCustomer(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#e0ac69'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 10, 12, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#800080'; ctx.fillRect(pos.x - 10, pos.y, 20, 25); }); }
-    function drawHelper(ctx, pos, type, hasItem) { drawWithShadow(() => { const colors = {milk: '#00FFFF', egg: '#fde047', baker: '#FFD700', seller: '#90EE90', wood: '#a3e635'}; ctx.fillStyle = '#C0C0C0'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 10, 10, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = colors[type] || '#A9A9A9'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 10, 4, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#A9A9A9'; ctx.fillRect(pos.x - 8, pos.y, 16, 20); if(hasItem) { ctx.font = '18px sans-serif'; const itemEmoji = {milk: '🥛', egg: '🥚', baker: '🌾', wood: '🪵'}[type] || '❔'; ctx.fillText(itemEmoji, pos.x + 15, pos.y); } }); }
+    function drawHelper(ctx, pos, type, hasItem) { drawWithShadow(() => { const colors = {milk: '#00FFFF', egg: '#fde047', wood: '#a3e635', miller: '#facc15', baker: '#fb923c', collector: '#fca5a5', seller: '#90EE90'}; ctx.fillStyle = '#C0C0C0'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 10, 10, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = colors[type] || '#A9A9A9'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 10, 4, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#A9A9A9'; ctx.fillRect(pos.x - 8, pos.y, 16, 20); if(hasItem) { ctx.font = '18px sans-serif'; const itemEmoji = {milk: '🥛', egg: '🥚', wood: '🪵', miller: '🌾', baker: '🥡', collector: '🍞'}[type] || '❔'; ctx.fillText(itemEmoji, pos.x + 15, pos.y); } }); }
     function drawIndicator(ctx, pos, emoji) { ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 45, 18, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = 'black'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(emoji, pos.x, pos.y - 45); }
+    function drawLevelIndicator(ctx, pos, level) { if (level <= 1) return; ctx.fillStyle = 'rgba(251, 191, 36, 0.9)'; ctx.beginPath(); ctx.arc(pos.x + 25, pos.y - 25, 12, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = 'black'; ctx.font = 'bold 14px Baloo 2'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(`x${level}`, pos.x + 25, pos.y - 25); }
+    function drawOrderBubble(ctx, pos, emoji) { const bubbleX = pos.x; const bubbleY = pos.y - 50; ctx.fillStyle = 'white'; ctx.strokeStyle = 'black'; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(bubbleX - 20, bubbleY - 20, 40, 40, 10); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.moveTo(bubbleX, bubbleY + 20); ctx.lineTo(bubbleX - 5, bubbleY + 25); ctx.lineTo(bubbleX + 5, bubbleY + 25); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.font = '28px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = 'black'; ctx.fillText(emoji, bubbleX, bubbleY); }
     function drawBackground(ctx) { ctx.fillStyle = '#78c078'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#D2B48C'; ctx.beginPath(); ctx.ellipse(canvas.width / 2, canvas.height, canvas.width * 0.9, canvas.height * 0.5, 0, 0, Math.PI * 2); ctx.fill(); }
 
     // --- RENDER ---
@@ -175,53 +149,45 @@
                     case 'oven': return { draw: drawOven, obj: loc };
                     case 'tree': return { draw: drawTree, obj: loc, indicator: '🪵' };
                     case 'mill': return { draw: drawMill, obj: loc, angle: gameState.millAngle };
-                    case 'bakery': return { draw: drawBakery, obj: loc };
                 }
             }).filter(Boolean),
-            ...gameState.helpers.map(h => ({ draw: drawHelper, obj: h, type: h.type, hasItem: h.hasItem })),
+            ...gameState.helpers.map(h => ({ draw: drawHelper, obj: h })),
             { draw: drawPlayer, obj: gameState.player },
-            ...(gameState.customer ? [{ draw: drawCustomer, obj: gameState.customer }] : [])
+            ...(gameState.customer1 ? [{ draw: drawCustomer, obj: gameState.customer1 }] : []),
+            ...(gameState.customer2 ? [{ draw: drawCustomer, obj: gameState.customer2 }] : [])
         ];
         
-        objectsToDraw.sort((a, b) => (a.obj.pos ? a.obj.pos.y : a.obj.y) - (b.obj.pos ? b.obj.pos.y : b.obj.y));
-        objectsToDraw.forEach(({ draw, obj, indicator, type, hasItem, angle }) => {
-            const pos = obj.pos || obj;
-            if (!pos || typeof pos.x === 'undefined' || typeof pos.y === 'undefined') return;
-            if (type) { draw(ctx, pos, type, hasItem); } 
-            else if (angle !== undefined) { draw(ctx, pos, angle); }
-            else { draw(ctx, pos); }
+        objectsToDraw.sort((a, b) => (a.obj.pos.y) - (b.obj.pos.y));
+        objectsToDraw.forEach(({ draw, obj, indicator, angle }) => {
+            const pos = obj.pos;
+            if (!pos) return;
+            if (angle !== undefined) { draw(ctx, pos, angle); }
+            else { draw(ctx, pos, obj.type, obj.hasItem); }
             if (indicator && obj.ready) drawIndicator(ctx, pos, indicator);
+            if (obj.level > 1) drawLevelIndicator(ctx, pos, obj.level);
         });
 
-        Object.values(gameState.locations).filter(loc => loc.owned).forEach(loc => {
-            if (loc.type === 'oven' && loc.hasBread) { ctx.font = '30px sans-serif'; ctx.fillText('🍞', loc.pos.x, loc.pos.y); }
-            else if (loc.type === 'oven' && loc.baking) { ctx.font = '30px sans-serif'; ctx.fillText('♨️', loc.pos.x, loc.pos.y); }
-        });
+        if (gameState.customer1) drawOrderBubble(ctx, gameState.customer1.pos, ITEM_EMOJIS[gameState.customer1.wants]);
+        if (gameState.customer2) drawOrderBubble(ctx, gameState.customer2.pos, ITEM_EMOJIS[gameState.customer2.wants]);
+
+        const oven = gameState.locations.oven;
+        if (oven.hasProduct) { ctx.font = '30px sans-serif'; ctx.fillText('🍞', oven.pos.x, oven.pos.y); }
+        else if (oven.processing) { ctx.font = '30px sans-serif'; ctx.fillText('♨️', oven.pos.x, oven.pos.y); }
+
+        const mill = gameState.locations.mill;
+        if (mill.owned && mill.hasProduct) { ctx.font = '30px sans-serif'; ctx.fillText('🥡', mill.pos.x, mill.pos.y); }
+        else if (mill.owned && mill.processing) { ctx.font = '30px sans-serif'; ctx.fillText('⚙️', mill.pos.x, mill.pos.y); }
 
         moneyEl.textContent = gameState.player.money;
         milkEl.textContent = `${gameState.storage.milk}`;
         eggEl.textContent = `${gameState.storage.egg}`;
         woodEl.textContent = `${gameState.storage.wood}`;
-        levelDisplay.textContent = `Lv. ${gameState.player.level}`;
-        const currentLevelXP = LEVEL_THRESHOLDS[gameState.player.level - 1];
-        const nextLevelXP = LEVEL_THRESHOLDS[gameState.player.level] || gameState.player.xp;
-        const progress = nextLevelXP > currentLevelXP ? (gameState.player.xp - currentLevelXP) / (nextLevelXP - currentLevelXP) * 100 : 100;
-        xpBar.style.width = `${Math.min(100, progress)}%`;
+        wheatEl.textContent = `${gameState.storage.wheat}`;
+        flourEl.textContent = `${gameState.storage.flour}`;
     }
 
     // --- UPDATE & OYUN MANTIĞI ---
-    function addXP(amount) {
-        gameState.player.xp += amount;
-        const nextLevelXP = LEVEL_THRESHOLDS[gameState.player.level];
-        if (nextLevelXP && gameState.player.xp >= nextLevelXP) {
-            gameState.player.level++;
-            showMessage(`Tebrikler! Seviye ${gameState.player.level} oldun!`, 'success');
-            playSound('levelUp');
-        }
-    }
-
     function update() {
-        // Player movement
         if (keys.up.pressed && gameState.player.pos.y > 0) gameState.player.pos.y -= 4;
         if (keys.down.pressed && gameState.player.pos.y < canvas.height) gameState.player.pos.y += 4;
         if (keys.left.pressed && gameState.player.pos.x > 0) gameState.player.pos.x -= 4;
@@ -229,32 +195,179 @@
         
         checkInteraction();
         
-        // Cooldowns
-        Object.values(gameState.locations).forEach(loc => { if(loc.owned && !loc.ready) { loc.cooldown--; if(loc.cooldown <= 0) loc.ready = true; }});
-        
-        // Mill animation
+        Object.values(gameState.locations).forEach(loc => { if(loc.owned && loc.cooldown > 0) { loc.cooldown--; if(loc.cooldown <= 0) loc.ready = true; }});
         gameState.millAngle += 0.01;
         
-        // Customer logic
-        if (!gameState.customer && Math.random() < 0.005) {
-            const wants = ['milk', 'egg', 'bread', 'wood'][Math.floor(Math.random() * 4)];
-            gameState.customer = { pos: toPixels({ x: 10, y: 3 }), wants, patience: 120 * 60 };
-            showMessage(`Yeni müşteri: ${wants} istiyor!`, 'info');
+        const spawnCustomer = (customerKey, stallPos) => {
+            if (!gameState[customerKey] && Math.random() < 0.005) {
+                let possibleWants = ['milk', 'egg', 'wood', 'wheat'];
+                if (gameState.locations.mill.owned) { possibleWants.push('flour', 'bread'); }
+                const randomWant = possibleWants[Math.floor(Math.random() * possibleWants.length)];
+                gameState[customerKey] = { pos: {x: stallPos.x, y: stallPos.y + TILE_SIZE}, wants: randomWant, patience: 120 * 60 };
+            }
+            if (gameState[customerKey] && --gameState[customerKey].patience <= 0) { gameState[customerKey] = null; showMessage("Müşteri gitti!", 'error'); playSound('error', 'C3'); }
+        };
+        spawnCustomer('customer1', gameState.locations.salesCounter1.pos);
+        if (gameState.locations.salesCounter2.owned) {
+            spawnCustomer('customer2', gameState.locations.salesCounter2.pos);
         }
-        if (gameState.customer && --gameState.customer.patience <= 0) { gameState.customer = null; showMessage("Müşteri gitti!", 'error'); playSound('error', 'C3'); }
         
-        // Oven logic
-        const oven = gameState.locations.oven1;
-        if(oven.baking && --oven.timer <= 0) { oven.baking = false; oven.hasBread = true; showMessage("Ekmek pişti!", 'success'); playSound('collect', 'G5'); addXP(XP_FOR_ACTION.craft); }
+        Object.values(gameState.locations).filter(loc => loc.owned && loc.processing).forEach(loc => {
+             if (--loc.timer <= 0) {
+                loc.processing = false;
+                loc.hasProduct = true;
+                const product = loc.type === 'oven' ? 'Ekmek' : 'Un';
+                showMessage(`${product} hazır!`, 'success');
+                playSound('collect', 'G5');
+             }
+        });
         
-        // Helper AI
-        gameState.helpers.forEach(h => { if(h.type === 'milk') updateMilkHelper(h); if(h.type === 'egg') updateEggHelper(h); if(h.type === 'wood') updateWoodHelper(h); });
+        gameState.helpers.forEach(updateHelper);
     }
 
-    function moveTowards(entity, target) { const dist = Math.hypot(target.x - entity.x, target.y - entity.y); if (dist < 2) return true; const angle = Math.atan2(target.y - entity.y, target.x - entity.x); entity.x += Math.cos(angle) * 2; entity.y += Math.sin(angle) * 2; return false; }
-    function updateMilkHelper(h) { const cow = Object.values(gameState.locations).find(l => l.type === 'cow' && l.owned && l.ready); const storage = gameState.locations.storageBox.pos; if (h.state === 'idle' && cow && gameState.storage.milk < 10) h.state = 'fetching'; if (h.state === 'fetching' && cow) { if(moveTowards(h, cow.pos)) { cow.ready = false; cow.cooldown = COOLDOWNS.milk; h.hasItem = true; h.state = 'returning'; }} if (h.state === 'returning') { if(moveTowards(h, storage)) { h.hasItem = false; gameState.storage.milk++; h.state = 'idle'; }} }
-    function updateEggHelper(h) { const chicken = Object.values(gameState.locations).find(l => l.type === 'chicken' && l.owned && l.ready); const storage = gameState.locations.storageBox.pos; if (h.state === 'idle' && chicken && gameState.storage.egg < 10) h.state = 'fetching'; if (h.state === 'fetching' && chicken) { if(moveTowards(h, chicken.pos)) { chicken.ready = false; chicken.cooldown = COOLDOWNS.egg; h.hasItem = true; h.state = 'returning'; }} if (h.state === 'returning') { if(moveTowards(h, storage)) { h.hasItem = false; gameState.storage.egg++; h.state = 'idle'; }} }
-    function updateWoodHelper(h) { const tree = Object.values(gameState.locations).find(l => l.type === 'tree' && l.owned && l.ready); const storage = gameState.locations.storageBox.pos; if (h.state === 'idle' && tree && gameState.storage.wood < 10) h.state = 'fetching'; if (h.state === 'fetching' && tree) { if(moveTowards(h, tree.pos)) { tree.ready = false; tree.cooldown = COOLDOWNS.wood; h.hasItem = true; h.state = 'returning'; }} if (h.state === 'returning') { if(moveTowards(h, storage)) { h.hasItem = false; gameState.storage.wood++; h.state = 'idle'; }} }
+    // --- YARDIMCI YAPAY ZEKASI (YENİDEN YAZILDI) ---
+    function moveTowards(entity, targetPos) {
+        const speed = 2.5;
+        const dist = Math.hypot(targetPos.x - entity.pos.x, targetPos.y - entity.pos.y);
+        if (dist < speed) {
+            entity.pos.x = targetPos.x;
+            entity.pos.y = targetPos.y;
+            return true;
+        }
+        const angle = Math.atan2(targetPos.y - entity.pos.y, targetPos.x - entity.pos.y);
+        entity.pos.x += Math.cos(angle) * speed;
+        entity.pos.y += Math.sin(angle) * speed;
+        return false;
+    }
+
+    function updateHelper(h) {
+        if (h.state === 'idle') {
+            findTaskFor(h);
+        } else if (h.state === 'moving') {
+            if (!h.targetPos) { // Güvenlik kontrolü
+                h.state = 'idle';
+                return;
+            }
+            if (moveTowards(h, h.targetPos)) {
+                executeTask(h);
+            }
+        }
+    }
+
+    function findTaskFor(h) {
+        const storagePos = gameState.locations.storageBox.pos;
+        // Görevleri öncelik sırasına göre ara
+        if (h.type === 'seller') {
+            const customer = gameState.customer1 && gameState.storage[gameState.customer1.wants] > 0 ? gameState.customer1 : (gameState.customer2 && gameState.storage[gameState.customer2.wants] > 0 ? gameState.customer2 : null);
+            if (customer) {
+                h.state = 'moving'; h.task = 'fetch_for_sale'; h.targetPos = storagePos; h.payload = { item: customer.wants, customer };
+                return;
+            }
+        }
+        if (h.type === 'collector') {
+            const productSource = Object.values(gameState.locations).find(l => l.owned && l.hasProduct && !l.claimedBy);
+            if (productSource) {
+                h.state = 'moving'; h.task = 'collect_product'; h.targetPos = productSource.pos; h.payload = { source: productSource };
+                productSource.claimedBy = h.id;
+                return;
+            }
+        }
+        if (h.type === 'baker') {
+            const oven = gameState.locations.oven;
+            if (oven.owned && !oven.processing && !oven.hasProduct && gameState.storage.flour >= oven.level) {
+                h.state = 'moving'; h.task = 'fetch_for_baking'; h.targetPos = storagePos; h.payload = { machine: oven };
+                return;
+            }
+        }
+        if (h.type === 'miller') {
+            const mill = gameState.locations.mill;
+            if (mill.owned && !mill.processing && !mill.hasProduct && gameState.storage.wheat >= mill.level) {
+                h.state = 'moving'; h.task = 'fetch_for_milling'; h.targetPos = storagePos; h.payload = { machine: mill };
+                return;
+            }
+        }
+        const basicCollectorMap = { milk: 'cow', egg: 'chicken', wood: 'tree' };
+        if (basicCollectorMap[h.type]) {
+            const source = Object.values(gameState.locations).find(l => l.type === basicCollectorMap[h.type] && l.owned && l.ready && !l.claimedBy);
+            if (source) {
+                h.state = 'moving'; h.task = 'collect_raw'; h.targetPos = source.pos; h.payload = { source, item: h.type };
+                source.claimedBy = h.id;
+                return;
+            }
+        }
+    }
+
+    function executeTask(h) {
+        const storagePos = gameState.locations.storageBox.pos;
+        switch (h.task) {
+            case 'collect_raw':
+                h.payload.source.ready = false;
+                h.payload.source.cooldown = COOLDOWNS[h.payload.item];
+                h.payload.source.claimedBy = null;
+                h.hasItem = true;
+                h.state = 'moving';
+                h.task = 'deliver_to_storage';
+                h.targetPos = storagePos;
+                break;
+            case 'deliver_to_storage':
+                gameState.storage[h.payload.item] += h.payload.source.level;
+                h.hasItem = false;
+                h.state = 'idle';
+                h.task = null;
+                h.payload = null;
+                break;
+            case 'fetch_for_milling':
+            case 'fetch_for_baking':
+                gameState.storage[h.task === 'fetch_for_milling' ? 'wheat' : 'flour'] -= h.payload.machine.level;
+                h.hasItem = true;
+                h.state = 'moving';
+                h.task = h.task === 'fetch_for_milling' ? 'deliver_to_mill' : 'deliver_to_oven';
+                h.targetPos = h.payload.machine.pos;
+                break;
+            case 'deliver_to_mill':
+            case 'deliver_to_oven':
+                h.hasItem = false;
+                h.payload.machine.processing = true;
+                h.payload.machine.timer = h.task === 'deliver_to_mill' ? PROCESS_TIMES.flour : PROCESS_TIMES.bread;
+                h.state = 'idle';
+                h.task = null;
+                h.payload = null;
+                break;
+            case 'collect_product':
+                h.payload.source.hasProduct = false;
+                h.payload.source.claimedBy = null;
+                h.hasItem = true;
+                h.state = 'moving';
+                h.task = 'deliver_product_to_storage';
+                h.targetPos = storagePos;
+                break;
+            case 'deliver_product_to_storage':
+                const product = h.payload.source.type === 'oven' ? 'bread' : 'flour';
+                gameState.storage[product] += h.payload.source.level;
+                h.hasItem = false;
+                h.state = 'idle';
+                h.task = null;
+                h.payload = null;
+                break;
+            case 'fetch_for_sale':
+                h.hasItem = true;
+                h.state = 'moving';
+                h.task = 'deliver_to_customer';
+                h.targetPos = h.payload.customer.pos;
+                break;
+            case 'deliver_to_customer':
+                h.hasItem = false;
+                gameState.player.money += ITEM_PRICES[h.payload.item];
+                showMessage('Satış yapıldı!', 'success');
+                playSound('sale', 'C5');
+                if (h.payload.customer === gameState.customer1) gameState.customer1 = null;
+                else gameState.customer2 = null;
+                h.state = 'idle';
+                h.task = null;
+                h.payload = null;
+                break;
+        }
+    }
 
     function checkInteraction() {
         const now = Date.now(); if (now - gameState.lastInteractionTime < 300) return; let interacted = false;
@@ -262,58 +375,77 @@
             let itemType;
             if (loc.ready) {
                 switch(loc.type) {
-                    case 'cow': itemType = 'milk'; break;
-                    case 'chicken': itemType = 'egg'; break;
-                    case 'wheat': itemType = 'wheat'; break;
-                    case 'tree': itemType = 'wood'; break;
+                    case 'cow': itemType = 'milk'; break; case 'chicken': itemType = 'egg'; break;
+                    case 'wheat': itemType = 'wheat'; break; case 'tree': itemType = 'wood'; break;
                 }
-                if (itemType) {
-                    gameState.storage[itemType]++; loc.ready = false; loc.cooldown = COOLDOWNS[itemType]; showMessage(`1 ${itemType} topladın!`, 'success'); playSound('collect', 'E5'); addXP(XP_FOR_ACTION.collect); interacted = true;
-                }
+                if (itemType) { gameState.storage[itemType] += loc.level; loc.ready = false; loc.cooldown = COOLDOWNS[itemType]; showMessage(`${loc.level} ${itemType} topladın!`, 'success'); playSound('collect', 'E5'); interacted = true; }
             }
-            if (loc.type === 'oven') {
-                if (loc.hasBread) { gameState.storage.bread++; loc.hasBread = false; showMessage('Ekmeği depoya koydun!', 'success'); playSound('collect', 'G5'); interacted = true; }
-                else if (!loc.baking && gameState.storage.wheat > 0) { gameState.storage.wheat--; loc.baking = true; loc.timer = 10 * 60; showMessage('Buğday fırına atıldı.', 'info'); interacted = true; }
+            if (loc.type === 'oven' || loc.type === 'mill') {
+                if (loc.hasProduct) { const product = loc.type === 'oven' ? 'bread' : 'flour'; gameState.storage[product] += loc.level; loc.hasProduct = false; showMessage(`${loc.level} ${product} depoya koydun!`, 'success'); playSound('collect', 'G5'); interacted = true; }
+                else if (!loc.processing) { const input = loc.type === 'oven' ? 'flour' : 'wheat'; if (gameState.storage[input] >= loc.level) { gameState.storage[input] -= loc.level; loc.processing = true; const output = loc.type === 'oven' ? 'bread' : 'flour'; loc.timer = PROCESS_TIMES[output]; showMessage(`${input} işleniyor...`, 'info'); interacted = true; } }
             }
         }});
-        if (gameState.customer && Math.hypot(gameState.player.pos.x - gameState.customer.pos.x, gameState.player.pos.y - gameState.customer.pos.y) < 50) {
-            const wants = gameState.customer.wants;
-            if (gameState.storage[wants] > 0) { gameState.storage[wants]--; gameState.player.money += ITEM_PRICES[wants]; showMessage('Satış yapıldı!', 'success'); playSound('sale', 'C5'); addXP(XP_FOR_ACTION.sell); gameState.customer = null; interacted = true; }
+        const customer = gameState.customer1 || gameState.customer2;
+        if (customer && Math.hypot(gameState.player.pos.x - customer.pos.x, gameState.player.pos.y - customer.pos.y) < 50) {
+            const wants = customer.wants;
+            if (gameState.storage[wants] > 0) { gameState.storage[wants]--; gameState.player.money += ITEM_PRICES[wants]; showMessage('Satış yapıldı!', 'success'); playSound('sale', 'C5'); if(customer === gameState.customer1) gameState.customer1 = null; else gameState.customer2 = null; interacted = true; }
             else { showMessage('Depoda ürün yok!', 'error'); playSound('error', 'C3'); interacted = true; }
         }
         if(interacted) gameState.lastInteractionTime = now;
     }
     
     // --- MODAL & UI ---
-    function openModal(title, content) {
-        modalTitle.textContent = title;
-        modalBody.innerHTML = content;
-        modalBackdrop.classList.remove('invisible', 'opacity-0');
-        playSound('synth', 'C4');
-    }
-
+    function openModal(title, content) { modalTitle.textContent = title; modalBody.innerHTML = content; modalBackdrop.classList.remove('invisible', 'opacity-0'); playSound('synth', 'C4'); }
     function setupModals() {
         document.getElementById('hire-helper-btn').addEventListener('click', () => {
-            const level = gameState.player.level;
             const content = `
-                <button class="w-full bg-blue-600 p-2 rounded" onclick="hireHelper('milk')">Sütçü Kirala (${COSTS.helpers.milk}💰) 🤖</button>
-                <button class="w-full p-2 rounded ${level >= 2 ? 'bg-yellow-500' : 'bg-gray-500 cursor-not-allowed'}" ${level < 2 ? 'disabled' : ''} onclick="hireHelper('egg')">Yumurtacı Kirala (${COSTS.helpers.egg}💰) 🐔 (Lv.2)</button>
-                <button class="w-full p-2 rounded ${level >= 3 ? 'bg-green-600' : 'bg-gray-500 cursor-not-allowed'}" ${level < 3 ? 'disabled' : ''} onclick="hireHelper('wood')">Oduncu Kirala (${COSTS.helpers.wood}💰) 🪓 (Lv.3)</button>
+                <button class="w-full bg-blue-600 p-2 rounded" onclick="hireHelper('milk')">Sütçü (${COSTS.helpers.milk}💰) 🥛</button>
+                <button class="w-full bg-yellow-400 text-black p-2 rounded" onclick="hireHelper('egg')">Yumurtacı (${COSTS.helpers.egg}💰) 🥚</button>
+                <button class="w-full bg-lime-600 p-2 rounded" onclick="hireHelper('wood')">Oduncu (${COSTS.helpers.wood}💰) 🪵</button>
+                <button class="w-full bg-amber-500 p-2 rounded" onclick="hireHelper('miller')">Değirmenci (${COSTS.helpers.miller}💰) 🌾</button>
+                <button class="w-full bg-orange-500 p-2 rounded" onclick="hireHelper('baker')">Fırıncı (${COSTS.helpers.baker}💰) 🥡</button>
+                <button class="w-full bg-rose-400 p-2 rounded" onclick="hireHelper('collector')">Toplayıcı (${COSTS.helpers.collector}💰) 🍞</button>
+                <button class="w-full bg-emerald-500 p-2 rounded" onclick="hireHelper('seller')">Satıcı (${COSTS.helpers.seller}💰) 🤑</button>
             `;
             openModal('Yardımcı Kirala', content);
         });
         document.getElementById('market-btn').addEventListener('click', () => {
-             const level = gameState.player.level;
             let content = '';
-            if (!gameState.locations.cow2.owned) { content += `<button class="w-full p-2 rounded ${level >= 2 ? 'bg-gray-600' : 'bg-gray-500 cursor-not-allowed'}" ${level < 2 ? 'disabled' : ''} onclick="buyAsset('cow2')">Yeni İnek (${COSTS.buildings.cow}💰) 🐮 (Lv.2)</button>`; }
-            if (!gameState.locations.mill1.owned) { content += `<button class="w-full p-2 rounded ${level >= 4 ? 'bg-gray-600' : 'bg-gray-500 cursor-not-allowed'}" ${level < 4 ? 'disabled' : ''} onclick="buyAsset('mill1')">Değirmen (${COSTS.buildings.mill}💰) ⚙️ (Lv.4)</button>`; }
-            if (!content) { content = '<p>Pazarda yeni bir şey yok.</p>'; }
-            openModal('Çiftlik Pazarı', content);
+            const upgradables = { cow: 'İnek Ahırı', chicken: 'Kümes', wheat: 'Tarla', oven: 'Fırın' };
+            for (const key in upgradables) {
+                const loc = gameState.locations[key];
+                const cost = COSTS.upgrades[key] * loc.level;
+                content += `<button class="w-full bg-gray-600 p-2 rounded" onclick="purchaseFromMarket('${key}')">Yükselt: ${upgradables[key]} (x${loc.level+1}) - ${cost}💰</button>`;
+            }
+            content += '<hr class="my-3 border-slate-600">';
+            if (!gameState.locations.mill.owned) { content += `<button class="w-full bg-stone-500 p-2 rounded" onclick="purchaseFromMarket('mill')">Değirmen İnşa Et (${COSTS.buildings.mill}💰)</button>`; }
+            if (!gameState.locations.salesCounter2.owned) { content += `<button class="w-full bg-stone-500 p-2 rounded mt-2" onclick="purchaseFromMarket('salesCounter2')">2. Tezgahı Aç (${COSTS.buildings.marketStall}💰)</button>`; }
+            openModal('Pazar Yeri', content);
         });
         document.getElementById('modal-close-btn').addEventListener('click', () => modalBackdrop.classList.add('invisible', 'opacity-0'));
     }
-    function hireHelper(type) { const cost = COSTS.helpers[type]; if (gameState.player.money >= cost) { gameState.player.money -= cost; gameState.helpers.push({ type, x: gameState.locations.storageBox.pos.x, y: gameState.locations.storageBox.pos.y, state: 'idle', hasItem: false }); showMessage(`${type} yardımcısı kiralandı!`, 'success'); playSound('sale', 'A4'); } else { showMessage('Yeterli para yok!', 'error'); playSound('error', 'C3'); } }
-    function buyAsset(assetKey) { const asset = gameState.locations[assetKey]; const cost = COSTS.buildings[asset.type]; if (gameState.player.money >= cost) { gameState.player.money -= cost; asset.owned = true; showMessage('Yeni bina inşa edildi!', 'success'); playSound('sale', 'G4'); addXP(XP_FOR_ACTION.build); modalBackdrop.classList.add('invisible', 'opacity-0'); } else { showMessage('Yeterli para yok!', 'error'); playSound('error', 'C3'); } }
+    function hireHelper(type) { const cost = COSTS.helpers[type]; if (gameState.player.money >= cost) { gameState.player.money -= cost; gameState.helpers.push({ id: Date.now(), type, pos: { ...gameState.locations.storageBox.pos }, state: 'idle', hasItem: false, payload: null, target: null, targetPos: null }); showMessage(`${type} yardımcısı kiralandı!`, 'success'); playSound('sale', 'A4'); } else { showMessage('Yeterli para yok!', 'error'); playSound('error', 'C3'); } }
+    function purchaseFromMarket(key) {
+        const loc = gameState.locations[key];
+        const isUpgrade = !!COSTS.upgrades[key];
+        const cost = isUpgrade ? COSTS.upgrades[key] * loc.level : COSTS.buildings[key];
+
+        if (gameState.player.money >= cost) {
+            gameState.player.money -= cost;
+            if (isUpgrade) {
+                loc.level++;
+                showMessage(`${loc.type} seviye ${loc.level}'e yükseltildi!`, 'success');
+            } else {
+                loc.owned = true;
+                showMessage('Yeni bina inşa edildi!', 'success');
+            }
+            playSound('sale', 'G4');
+            modalBackdrop.classList.add('invisible', 'opacity-0');
+        } else {
+            showMessage('Yeterli para yok!', 'error');
+            playSound('error', 'C3');
+        }
+    }
     let messageTimer;
     function showMessage(text, type) { clearTimeout(messageTimer); messageBox.textContent = text; messageBox.className = 'h-10 bg-black/30 rounded-lg flex items-center justify-center p-2 text-center font-semibold'; if(type === 'success') messageBox.classList.add('text-green-300'); else if(type === 'error') messageBox.classList.add('text-red-400'); else messageBox.classList.add('text-yellow-200'); }
 
@@ -325,38 +457,29 @@
     }
     
     function gameLoop() {
-        try {
-            update();
-            render();
-        } catch (e) {
-            console.error("Oyun Döngüsü Hatası:", e);
-            messageBox.style.color = 'red';
-            messageBox.textContent = 'HATA: ' + e.message;
-            return; 
-        }
+        try { update(); render(); } catch (e) { console.error("Oyun Döngüsü Hatası:", e); messageBox.style.color = 'red'; messageBox.textContent = 'HATA: ' + e.message; return; }
         requestAnimationFrame(gameLoop);
     }
 
     function init() {
         gameState = {
-            player: { pos: toPixels({ x: 10, y: 7 }), level: 1, xp: 0, money: 200 },
-            storage: { milk: 0, egg: 0, wheat: 0, flour: 0, bread: 0, wood: 0, cake: 0 },
+            player: { pos: toPixels({ x: 10, y: 7 }), money: 1000 },
+            storage: { milk: 0, egg: 0, wheat: 0, flour: 0, bread: 0, wood: 0 },
             locations: {
-                salesCounter: { type: 'salesCounter', pos: toPixels({ x: 10, y: 2 }), owned: true },
+                salesCounter1: { type: 'salesCounter', pos: toPixels({ x: 10, y: 2 }), owned: true },
+                salesCounter2: { type: 'salesCounter', pos: toPixels({ x: 16, y: 2 }), owned: false },
                 storageBox: { type: 'storageBox', pos: toPixels({ x: 2, y: 2 }), owned: true },
-                cow1: { type: 'cow', pos: toPixels({ x: 3, y: 12 }), ready: true, cooldown: 0, owned: true },
-                cow2: { type: 'cow', pos: toPixels({ x: 6, y: 12 }), ready: true, cooldown: 0, owned: false, unlockLevel: 2 },
-                chicken1: { type: 'chicken', pos: toPixels({ x: 13, y: 12 }), ready: true, cooldown: 0, owned: true },
-                wheat1: { type: 'wheat', pos: toPixels({ x: 17, y: 12 }), ready: true, cooldown: 0, owned: true },
-                tree1: { type: 'tree', pos: toPixels({ x: 3, y: 3 }), ready: true, cooldown: 0, owned: true },
-                tree2: { type: 'tree', pos: toPixels({ x: 4, y: 5 }), ready: true, cooldown: 0, owned: true },
-                oven1: { type: 'oven', pos: toPixels({ x: 18, y: 2 }), baking: false, timer: 0, hasBread: false, owned: true },
-                mill1: { type: 'mill', pos: toPixels({ x: 18, y: 8 }), processing: false, timer: 0, hasFlour: false, owned: false, unlockLevel: 4 },
-                bakery1: { type: 'bakery', pos: toPixels({ x: 14, y: 2 }), baking: false, timer: 0, hasCake: false, owned: false, unlockLevel: 5 },
+                cow: { type: 'cow', pos: toPixels({ x: 3, y: 12 }), ready: true, cooldown: 0, owned: true, level: 1, claimedBy: null },
+                chicken: { type: 'chicken', pos: toPixels({ x: 9, y: 12 }), ready: true, cooldown: 0, owned: true, level: 1, claimedBy: null },
+                wheat: { type: 'wheat', pos: toPixels({ x: 15, y: 12 }), ready: true, cooldown: 0, owned: true, level: 1, claimedBy: null },
+                tree: { type: 'tree', pos: toPixels({ x: 3, y: 4 }), ready: true, cooldown: 0, owned: true, level: 1, claimedBy: null },
+                oven: { type: 'oven', pos: toPixels({ x: 18, y: 5 }), processing: false, timer: 0, hasProduct: false, owned: true, level: 1, claimedBy: null },
+                mill: { type: 'mill', pos: toPixels({ x: 18, y: 9 }), processing: false, timer: 0, hasProduct: false, owned: false, level: 1, claimedBy: null },
             },
             helpers: [],
             millAngle: 0,
-            customer: null,
+            customer1: null,
+            customer2: null,
             lastInteractionTime: 0
         };
 
