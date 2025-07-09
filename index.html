@@ -1,218 +1,381 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>30 Günlük Şınav Meydan Okuması</title>
-  <link rel="icon" type="image/jpeg" sizes="192x192" href="img/normal_pushup.jpg">
-  <link rel="apple-touch-icon" sizes="512x512" href="img/normal_pushup.jpg">
-  <link rel="manifest" href="manifest.json">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    :root { --primary:#1abc9c; --danger:#e74c3c; --dark:#2c3e50; --light:#ecf0f1; }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Poppins',sans-serif;background:var(--light);color:var(--dark);padding-bottom:80px}
-    header{padding:20px;text-align:center}
-    h1{font-size:clamp(1.6rem,5vw,2.2rem);margin-bottom:10px}
-    #progressBarWrap{background:#ccc;border-radius:8px;height:10px;width:100%;overflow:hidden}
-    #progressBar{height:100%;width:0;background:var(--primary);transition:width .3s}
-    #calendar{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:10px;padding:0 15px 30px;max-width:720px;margin:0 auto}
-    .day{background:#fff;border-radius:10px;padding:16px 0;text-align:center;font-weight:600;cursor:pointer;user-select:none;box-shadow:0 2px 6px rgba(0,0,0,.08);transition:transform .1s}
-    .day:active{transform:scale(.96)}
-    .day.done{background:var(--primary);color:#fff}
-    #detail{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;padding:15px;z-index:10}
-    #detailCard{background:#fff;width:100%;max-width:430px;border-radius:14px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,.25);overflow-y:auto;max-height:92vh}
-    #detailCard img{width:100%;border-radius:10px;margin-bottom:14px}
-    #dayTitle{font-size:1.4rem;text-align:center;margin-bottom:6px}
-    #dayDesc{margin-bottom:14px;white-space:pre-line}
-    #setCounterArea,#timer{margin:18px 0;text-align:center}
-    #setDisplay{font-size:1.4rem;margin-bottom:8px;cursor:pointer;user-select:none}
-    button{padding:10px 16px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;margin:6px 4px;min-width:88px}
-    button.alt{background:var(--dark)}
-    button.danger{background:var(--danger)}
-    button.small{padding:6px 10px;font-size:.9rem}
-    #timerDisplay{font-size:2rem;margin-bottom:8px;letter-spacing:1px}
-    footer{text-align:center;padding:20px;font-size:.9rem}
-    footer a{color:var(--primary);text-decoration:none}
-    footer a:hover{text-decoration:underline}
-    @media (hover:hover){button:hover{opacity:.9}}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Çiftlik İmparatorluğu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Baloo 2', cursive; touch-action: manipulation; overflow: hidden; }
+        .game-container { width: 100%; max-width: 95vw; max-height: 95vh; }
+        canvas { background-color: #78c078; border-radius: 1rem; border: 6px solid #8B5A2B; width: 100%; height: auto; aspect-ratio: 20 / 15; box-shadow: inset 0 0 20px rgba(0,0,0,0.2); }
+        .control-button, .action-button { width: 60px; height: 60px; border-radius: 50%; background-color: #fbbf24; border: 2px solid #f59e0b; box-shadow: 0 5px 10px rgba(0,0,0,0.2); transition: all 0.2s ease-in-out; user-select: none; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; }
+        .control-button:active, .action-button:active { transform: translateY(2px) scale(0.95); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .modal { transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .xp-bar-container { background-color: #555; border-radius: 10px; padding: 2px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
+        .xp-bar { background: linear-gradient(to right, #6366f1, #a855f7); height: 16px; border-radius: 8px; transition: width 0.5s ease-out; }
+    </style>
 </head>
-<body>
-  <header>
-    <h1>30 Günlük Şınav Meydan Okuması</h1>
-    <div id="progressBarWrap"><div id="progressBar"></div></div>
-  </header>
+<body class="bg-gray-900 flex items-center justify-center h-screen">
 
-  <section id="calendar"></section>
-  <!-- Alt bağlantı: Neden sayfası -->
-<footer>
-  <a href="neden.html">Neden Şınav Çekmelisin?</a>
-</footer>
-
-  <!-- Detay kutusu (modal) -->
-  <div id="detail">
-    <div id="detailCard">
-      <h2 id="dayTitle"></h2>
-      <img id="dayImg" src="" alt="Hareket görseli" loading="lazy">
-      <p id="dayDesc"></p>
-      <div id="setCounterArea">
-        <div id="setDisplay">Set: 0</div>
-        <button id="setBtn" class="small">Set Tamamlandı</button><br>
-        <small>(Sıfırlamak için sayıya uzun bas)</small>
-      </div>
-      <div id="timer">
-        <div id="timerDisplay">00:00</div>
-        <button id="startTimerBtn" class="alt small">Başlat</button>
-        <button id="stopTimerBtn"  class="danger small">Dur</button>
-        <button id="resetTimerBtn" class="small">Sıfırla</button>
-      </div>
-      <div style="text-align:center;margin-top:20px;display:flex;justify-content:center;flex-wrap:wrap;gap:6px;">
-        <button id="doneBtn">Tamamlandı ✓</button>
-        <button id="resetDayBtn" class="alt">Günü Sıfırla</button>
-        <button id="closeBtn" class="danger">Kapat</button>
-      </div>
+    <!-- BAŞLANGIÇ EKRANI -->
+    <div id="start-screen" class="w-full h-full flex flex-col items-center justify-center text-white text-center p-4 bg-cover bg-center" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://placehold.co/1200x800/22c55e/78c078?text=+)');">
+        <h1 class="text-4xl md:text-7xl font-bold mb-8 text-yellow-300 drop-shadow-lg" style="text-shadow: 3px 3px 0 #000;">Çiftlik İmparatorluğu</h1>
+        <button id="play-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg text-2xl border-b-4 border-green-700 hover:border-green-600 shadow-lg transform hover:scale-105 transition-transform animate-pulse">
+            Oyna
+        </button>
     </div>
-  </div>
 
-<script>
-/* --------------------  PLAN ve GÖRSELLER -------------------- */
-const plan = {
-  1:{desc:"Başlangıç testi: maksimum tekrar.",                    img:"img/normal_pushup.jpg"},
-  2:{desc:"8×15 Normal Şınav",                                   img:"img/normal_pushup.jpg"},
-  3:{desc:"6×12 Diamond Şınav",                                  img:"img/diamond_pushup.jpg"},
-  4:{desc:"EMOM 10 dk → her dk 14 tekrar.",       timer:true,timerSeconds:60,img:"img/normal_pushup.jpg"},
-  5:{desc:"3 tur Çift-Max → 45 sn mola",           timer:true,timerSeconds:45,img:"img/normal_pushup.jpg"},
-  6:{desc:"5×10 Clap Şınav",                                     img:"img/clap_pushup.jpg"},
-  7:{desc:"Ara ölçüm → Drop-set",                                img:"img/normal_pushup.jpg"},
-  8:{desc:"7×20 Normal Şınav",                                   img:"img/normal_pushup.jpg"},
-  9:{desc:"6 tur: 8/kol Archer → 12 Diamond",                    img:"img/archer_pushup.jpg"},
- 10:{desc:"EMOM 12 dk → her dk 15 tekrar",        timer:true,timerSeconds:60,img:"img/normal_pushup.jpg"},
- 11:{desc:"Piramit 10-15-20-25-20-15-10",                         img:"img/normal_pushup.jpg"},
- 12:{desc:"5×10 Decline Clap → 2× Çift-Max (30 sn)", timer:true,timerSeconds:30,img:"img/decline_pushup.jpg"},
- 13:{desc:"40 Şınav tek seferde → 10 dk sonra 3 set max",         img:"img/normal_pushup.jpg"},
- 14:{desc:"50 Şınav kesintisiz",                                  img:"img/normal_pushup.jpg"},
- 15:{desc:"8×15 Tempo (3 sn iniş)",                               img:"img/tempo_pushup.jpg"},
- 16:{desc:"6×8/kol Archer",                                       img:"img/archer_pushup.jpg"},
- 17:{desc:"EMOM 14 dk → her dk 16 tekrar",       timer:true,timerSeconds:60,img:"img/normal_pushup.jpg"},
- 18:{desc:"5 tur: 12 Diamond → 8 Clap",                           img:"img/diamond_pushup.jpg"},
- 19:{desc:"3 tur Çift-Max (60 sn mola)",         timer:true,timerSeconds:60,img:"img/normal_pushup.jpg"},
- 20:{desc:"10×12 Normal Şınav",                                   img:"img/normal_pushup.jpg"},
- 21:{desc:"Ara test: Maksimum tekrar",                            img:"img/normal_pushup.jpg"},
- 22:{desc:"5×12 Decline Şınav",                                   img:"img/decline_pushup.jpg"},
- 23:{desc:"7×8 Pseudo-Planche",                                   img:"img/pseudo_planche_pushup.jpg"},
- 24:{desc:"EMOM 16 dk → her dk 18 tekrar",        timer:true,timerSeconds:60,img:"img/normal_pushup.jpg"},
- 25:{desc:"4 tur: 20 Normal → 12 Diamond → 10 Clap",              img:"img/diamond_pushup.jpg"},
- 26:{desc:"3 tur Piramit Çift-Max (30 sn)",       timer:true,timerSeconds:30,img:"img/normal_pushup.jpg"},
- 27:{desc:"60 Şınav tek seferde",                                 img:"img/normal_pushup.jpg"},
- 28:{desc:"5 tur: 10 Decline Clap → 8 Archer",                    img:"img/decline_pushup.jpg"},
- 29:{desc:"EMOM 18 dk → her dk 20 tekrar",        timer:true,timerSeconds:60,img:"img/normal_pushup.jpg"},
- 30:{desc:"FİNAL: 80+ Şınav 🏆",                                  img:"img/normal_pushup.jpg"}
-};
+    <!-- OYUN EKRANI -->
+    <div id="game-container" class="game-container bg-gray-800 text-white rounded-2xl shadow-2xl p-4 flex-col gap-2 hidden">
+        <div class="grid grid-cols-3 md:grid-cols-5 gap-2 text-center bg-gray-700/80 p-2 rounded-lg text-sm md:text-base">
+            <div><span id="level-display" class="bg-purple-600 px-2 py-1 rounded-full">Lv. 1</span></div>
+            <div class="col-span-2 md:col-span-1">💰 <span id="money">0</span></div>
+            <div>🥛 <span id="milk">0</span></div>
+            <div>🥚 <span id="egg">0</span></div>
+            <div>🪵 <span id="wood">0</span></div>
+            <div class="col-span-3 md:col-span-5 xp-bar-container">
+                <div id="xp-bar" class="xp-bar" style="width: 0%;"></div>
+            </div>
+        </div>
+        <div id="message-box" class="h-10 bg-black/30 rounded-lg flex items-center justify-center p-2 text-center text-yellow-200 font-semibold"></div>
+        <div class="flex-grow flex items-center justify-center"><canvas id="game-canvas"></canvas></div>
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div class="grid grid-cols-3 gap-2 w-48">
+                <div></div> <button id="up-btn" class="control-button">⬆️</button> <div></div>
+                <button id="left-btn" class="control-button">⬅️</button>
+                <button id="down-btn" class="control-button">⬇️</button>
+                <button id="right-btn" class="control-button">➡️</button>
+            </div>
+            <div class="flex items-center gap-4">
+                 <button id="hire-helper-btn" class="action-button bg-blue-500 hover:bg-blue-600" title="Yardımcı Kirala">🧑‍🔧</button>
+                 <button id="market-btn" class="action-button bg-green-500 hover:bg-green-600" title="Pazar">🛒</button>
+            </div>
+        </div>
+    </div>
 
-/* --------------------  GENEL DEĞİŞKENLER -------------------- */
-const STORAGE_KEY = 'pushup30_done';
-let doneDays = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    <!-- MODALLAR -->
+    <div id="modal-backdrop" class="modal fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 invisible opacity-0">
+        <div id="modal-content" class="bg-slate-800 border border-slate-600 rounded-lg p-6 max-w-sm w-full text-white shadow-xl">
+            <h2 id="modal-title" class="text-2xl font-bold mb-4 text-yellow-300"></h2>
+            <div id="modal-body" class="space-y-3"></div>
+            <button id="modal-close-btn" class="mt-6 w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg">Kapat</button>
+        </div>
+    </div>
+    
+    <script>
+    // --- OYUNU BAŞLATMA ---
+    document.getElementById('play-btn').addEventListener('click', () => {
+        document.getElementById('start-screen').classList.add('hidden');
+        const gameContainer = document.getElementById('game-container');
+        gameContainer.classList.remove('hidden');
+        gameContainer.classList.add('flex');
+        try {
+            init();
+        } catch(e) {
+            console.error("Initialization Error:", e);
+            const messageBox = document.getElementById('message-box');
+            if (messageBox) {
+                messageBox.style.color = 'red';
+                messageBox.textContent = 'OYUN BAŞLATMA HATASI: ' + e.message;
+            }
+        }
+    });
 
-const calendar   = document.getElementById('calendar');
-const progressBar= document.getElementById('progressBar');
+    // --- GLOBAL DEĞİŞKENLER ---
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    const BOARD_WIDTH = 20, BOARD_HEIGHT = 15, TILE_SIZE = 50;
+    canvas.width = BOARD_WIDTH * TILE_SIZE;
+    canvas.height = BOARD_HEIGHT * TILE_SIZE;
 
-/* --------------------  TAKVİM -------------------- */
-function renderCalendar(){
-  calendar.innerHTML='';
-  const total=30;
-  progressBar.style.width=`${doneDays.length/total*100}%`;
-  for(let day=1;day<=total;day++){
-    const box=document.createElement('div');
-    box.className='day'+(doneDays.includes(day)?' done':'');
-    box.textContent=day;
-    box.onclick=()=>openDay(day);
-    calendar.appendChild(box);
-  }
-}
+    // DOM Elements
+    const moneyEl = document.getElementById('money');
+    const milkEl = document.getElementById('milk');
+    const eggEl = document.getElementById('egg');
+    const woodEl = document.getElementById('wood');
+    const messageBox = document.getElementById('message-box');
+    const levelDisplay = document.getElementById('level-display');
+    const xpBar = document.getElementById('xp-bar');
+    const modalBackdrop = document.getElementById('modal-backdrop');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    
+    let gameState = {};
+    let sounds = {};
+    let audioStarted = false;
+    const keys = { up: { pressed: false }, down: { pressed: false }, left: { pressed: false }, right: { pressed: false } };
 
-/* --------------------  MODAL & ELEMENTLER -------------------- */
-const detail      = document.getElementById('detail');
-const dayTitle    = document.getElementById('dayTitle');
-const dayDesc     = document.getElementById('dayDesc');
-const dayImg      = document.getElementById('dayImg');
+    const XP_FOR_ACTION = { collect: 1, craft: 5, sell: 2, build: 20 };
+    const LEVEL_THRESHOLDS = [0, 100, 250, 500, 1000, 2000, 3500, 5000]; 
+    const COOLDOWNS = { milk: 10 * 60, egg: 7 * 60, wheat: 15 * 60, wood: 30 * 60 };
+    const ITEM_PRICES = { milk: 10, egg: 5, bread: 25, wood: 8 };
+    const COSTS = {
+        helpers: { milk: 100, egg: 150, wood: 250, baker: 300, seller: 500 },
+        buildings: { cow: 250, woodcutterHut: 400, mill: 800, bakery: 1500 }
+    };
+    const toPixels = (gridPos) => ({ x: gridPos.x * TILE_SIZE + TILE_SIZE / 2, y: gridPos.y * TILE_SIZE + TILE_SIZE / 2 });
 
-const timerDiv        = document.getElementById('timer');
-const timerDisplay    = document.getElementById('timerDisplay');
-const startTimerBtn   = document.getElementById('startTimerBtn');
-const stopTimerBtn    = document.getElementById('stopTimerBtn');
-const resetTimerBtn   = document.getElementById('resetTimerBtn');
-let timerInterval, remaining=0, initialSeconds=0;
+    // --- SES FONKSİYONLARI ---
+    function initializeSounds() {
+        if (typeof Tone === 'undefined') { console.error("Tone.js kütüphanesi yüklenemedi."); return; }
+        sounds = {
+            synth: new Tone.Synth().toDestination(),
+            collect: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.1 } }).toDestination(),
+            sale: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination(),
+            error: new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 } }).toDestination(),
+            levelUp: new Tone.FatOscillator("Ab3", "sawtooth", 40).toDestination(),
+            background: new Tone.MembraneSynth().toDestination()
+        };
+    }
+    function playSound(type, note, duration = '8n') {
+        if (!audioStarted || !sounds[type]) return;
+        try {
+            if (type === 'levelUp') { sounds.levelUp.start().stop("+0.5"); }
+            else { sounds[type].triggerAttackRelease(note, duration); }
+        } catch (e) { console.error("Ses çalınamadı:", e); }
+    }
 
-const setDisplay  = document.getElementById('setDisplay');
-const setBtn      = document.getElementById('setBtn');
-let setCount=0, longPressTimer;
+    // --- ÇİZİM FONKSİYONLARI ---
+    function drawWithShadow(drawFunc) {
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)'; ctx.shadowBlur = 8; ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 4;
+        drawFunc();
+        ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+    }
+    function drawPlayer(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#ffc0cb'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 10, 12, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#8B4513'; ctx.fillRect(pos.x - 15, pos.y - 22, 30, 8); ctx.fillRect(pos.x - 8, pos.y - 30, 16, 10); ctx.fillStyle = '#4682B4'; ctx.beginPath(); ctx.moveTo(pos.x - 10, pos.y); ctx.lineTo(pos.x + 10, pos.y); ctx.lineTo(pos.x + 15, pos.y + 25); ctx.lineTo(pos.x - 15, pos.y + 25); ctx.closePath(); ctx.fill(); }); }
+    function drawCow(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = 'white'; ctx.beginPath(); ctx.ellipse(pos.x, pos.y, 30, 20, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = 'black'; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = 'black'; ctx.beginPath(); ctx.ellipse(pos.x - 15, pos.y - 5, 8, 5, -0.5, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(pos.x + 10, pos.y + 8, 10, 6, 0.7, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(pos.x + 25, pos.y - 10, 15, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(pos.x + 30, pos.y - 12, 2, 0, Math.PI * 2); ctx.fill(); }); }
+    function drawChicken(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#FFFACD'; ctx.beginPath(); ctx.arc(pos.x, pos.y, 15, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(pos.x + 10, pos.y - 12, 8, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = 'red'; ctx.beginPath(); ctx.moveTo(pos.x + 8, pos.y - 20); ctx.lineTo(pos.x + 12, pos.y - 23); ctx.lineTo(pos.x + 14, pos.y - 20); ctx.fill(); ctx.fillStyle = 'orange'; ctx.beginPath(); ctx.moveTo(pos.x + 18, pos.y - 12); ctx.lineTo(pos.x + 22, pos.y - 10); ctx.lineTo(pos.x + 18, pos.y - 8); ctx.fill(); }); }
+    function drawTree(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#8B4513'; ctx.fillRect(pos.x - 5, pos.y - 20, 10, 40); ctx.fillStyle = '#228B22'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 30, 25, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#3CB371'; ctx.beginPath(); ctx.arc(pos.x + 10, pos.y - 40, 20, 0, Math.PI * 2); ctx.fill(); }); }
+    function drawMill(ctx, pos, angle) { drawWithShadow(() => { ctx.fillStyle = '#D2B48C'; ctx.beginPath(); ctx.moveTo(pos.x - 20, pos.y + 30); ctx.lineTo(pos.x - 25, pos.y - 20); ctx.lineTo(pos.x + 25, pos.y - 20); ctx.lineTo(pos.x + 20, pos.y + 30); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#A0522D'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 20, 25, 0, Math.PI, true); ctx.fill(); ctx.save(); ctx.translate(pos.x, pos.y - 15); ctx.rotate(angle); ctx.fillStyle = '#8B4513'; ctx.fillRect(-5, -40, 10, 80); ctx.fillRect(-40, -5, 80, 10); ctx.restore(); }); }
+    function drawBakery(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#F5DEB3'; ctx.fillRect(pos.x - 30, pos.y - 20, 60, 50); ctx.fillStyle = '#D2691E'; ctx.beginPath(); ctx.moveTo(pos.x - 40, pos.y - 20); ctx.lineTo(pos.x + 40, pos.y - 20); ctx.lineTo(pos.x, pos.y - 50); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#8B4513'; ctx.fillRect(pos.x + 15, pos.y - 40, 15, 20); }); }
+    function drawOven(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#A9A9A9'; ctx.fillRect(pos.x - 25, pos.y - 20, 50, 40); ctx.fillStyle = '#8B4513'; ctx.fillRect(pos.x - 28, pos.y - 23, 56, 5); ctx.fillStyle = 'black'; ctx.fillRect(pos.x - 15, pos.y, 30, 15); }); }
+    function drawSalesCounter(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#D2B48C'; ctx.fillRect(pos.x - 30, pos.y - 10, 60, 20); ctx.fillStyle = '#DC143C'; ctx.beginPath(); ctx.moveTo(pos.x - 35, pos.y - 25); ctx.lineTo(pos.x + 35, pos.y - 25); ctx.lineTo(pos.x + 30, pos.y - 10); ctx.lineTo(pos.x - 30, pos.y - 10); ctx.closePath(); ctx.fill(); }); }
+    function drawStorageBox(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#8B4513'; ctx.fillRect(pos.x - 20, pos.y - 15, 40, 30); ctx.strokeStyle = '#5a2d0c'; ctx.lineWidth = 3; ctx.strokeRect(pos.x - 20, pos.y - 15, 40, 30); ctx.beginPath(); ctx.moveTo(pos.x - 20, pos.y - 15); ctx.lineTo(pos.x + 20, pos.y + 15); ctx.stroke(); }); }
+    function drawCustomer(ctx, pos) { drawWithShadow(() => { ctx.fillStyle = '#e0ac69'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 10, 12, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#800080'; ctx.fillRect(pos.x - 10, pos.y, 20, 25); }); }
+    function drawHelper(ctx, pos, type, hasItem) { drawWithShadow(() => { const colors = {milk: '#00FFFF', egg: '#fde047', baker: '#FFD700', seller: '#90EE90', wood: '#a3e635'}; ctx.fillStyle = '#C0C0C0'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 10, 10, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = colors[type] || '#A9A9A9'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 10, 4, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#A9A9A9'; ctx.fillRect(pos.x - 8, pos.y, 16, 20); if(hasItem) { ctx.font = '18px sans-serif'; const itemEmoji = {milk: '🥛', egg: '🥚', baker: '🌾', wood: '🪵'}[type] || '❔'; ctx.fillText(itemEmoji, pos.x + 15, pos.y); } }); }
+    function drawIndicator(ctx, pos, emoji) { ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; ctx.beginPath(); ctx.arc(pos.x, pos.y - 45, 18, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = 'black'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(emoji, pos.x, pos.y - 45); }
+    function drawBackground(ctx) { ctx.fillStyle = '#78c078'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#D2B48C'; ctx.beginPath(); ctx.ellipse(canvas.width / 2, canvas.height, canvas.width * 0.9, canvas.height * 0.5, 0, 0, Math.PI * 2); ctx.fill(); }
 
-function resetSetCounter(){
-  setCount=0;
-  setDisplay.textContent=`Set: ${setCount}`;
-}
-setBtn.onclick=()=>{ setCount++; setDisplay.textContent=`Set: ${setCount}`; };
-setDisplay.addEventListener('pointerdown',()=>{ longPressTimer=setTimeout(resetSetCounter,600); });
-['pointerup','pointerleave'].forEach(e=>setDisplay.addEventListener(e,()=>clearTimeout(longPressTimer)));
+    // --- RENDER ---
+    function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBackground(ctx);
+        
+        let objectsToDraw = [
+            ...Object.values(gameState.locations).filter(loc => loc.owned).map(loc => {
+                switch(loc.type) {
+                    case 'salesCounter': return { draw: drawSalesCounter, obj: loc };
+                    case 'storageBox': return { draw: drawStorageBox, obj: loc };
+                    case 'cow': return { draw: drawCow, obj: loc, indicator: '🥛' };
+                    case 'chicken': return { draw: drawChicken, obj: loc, indicator: '🥚' };
+                    case 'wheat': return { draw: drawWheatField, obj: loc, indicator: '🌾' };
+                    case 'oven': return { draw: drawOven, obj: loc };
+                    case 'tree': return { draw: drawTree, obj: loc, indicator: '🪵' };
+                    case 'mill': return { draw: drawMill, obj: loc, angle: gameState.millAngle };
+                    case 'bakery': return { draw: drawBakery, obj: loc };
+                }
+            }).filter(Boolean),
+            ...gameState.helpers.map(h => ({ draw: drawHelper, obj: h, type: h.type, hasItem: h.hasItem })),
+            { draw: drawPlayer, obj: gameState.player },
+            ...(gameState.customer ? [{ draw: drawCustomer, obj: gameState.customer }] : [])
+        ];
+        
+        objectsToDraw.sort((a, b) => (a.obj.pos ? a.obj.pos.y : a.obj.y) - (b.obj.pos ? b.obj.pos.y : b.obj.y));
+        objectsToDraw.forEach(({ draw, obj, indicator, type, hasItem, angle }) => {
+            const pos = obj.pos || obj;
+            if (!pos || typeof pos.x === 'undefined' || typeof pos.y === 'undefined') return;
+            if (type) { draw(ctx, pos, type, hasItem); } 
+            else if (angle !== undefined) { draw(ctx, pos, angle); }
+            else { draw(ctx, pos); }
+            if (indicator && obj.ready) drawIndicator(ctx, pos, indicator);
+        });
 
-/* ---------- Modal aç / kapa ---------- */
-function openDay(day){
-  clearInterval(timerInterval);
-  resetSetCounter();
+        Object.values(gameState.locations).filter(loc => loc.owned).forEach(loc => {
+            if (loc.type === 'oven' && loc.hasBread) { ctx.font = '30px sans-serif'; ctx.fillText('🍞', loc.pos.x, loc.pos.y); }
+            else if (loc.type === 'oven' && loc.baking) { ctx.font = '30px sans-serif'; ctx.fillText('♨️', loc.pos.x, loc.pos.y); }
+        });
 
-  const info = plan[day];
-  dayTitle.textContent=`Gün ${day}`;
-  dayDesc.textContent = info.desc;
-  dayImg.src          = info.img || '';
-  dayImg.style.display= info.img ? 'block':'none';
+        moneyEl.textContent = gameState.player.money;
+        milkEl.textContent = `${gameState.storage.milk}`;
+        eggEl.textContent = `${gameState.storage.egg}`;
+        woodEl.textContent = `${gameState.storage.wood}`;
+        levelDisplay.textContent = `Lv. ${gameState.player.level}`;
+        const currentLevelXP = LEVEL_THRESHOLDS[gameState.player.level - 1];
+        const nextLevelXP = LEVEL_THRESHOLDS[gameState.player.level] || gameState.player.xp;
+        const progress = nextLevelXP > currentLevelXP ? (gameState.player.xp - currentLevelXP) / (nextLevelXP - currentLevelXP) * 100 : 100;
+        xpBar.style.width = `${Math.min(100, progress)}%`;
+    }
 
-  if(info.timer){
-    timerDiv.style.display='block';
-    initialSeconds = info.timerSeconds || 60;
-    remaining      = initialSeconds;
-    updateTimerDisplay();
-  }else{
-    timerDiv.style.display='none';
-  }
+    // --- UPDATE & OYUN MANTIĞI ---
+    function addXP(amount) {
+        gameState.player.xp += amount;
+        const nextLevelXP = LEVEL_THRESHOLDS[gameState.player.level];
+        if (nextLevelXP && gameState.player.xp >= nextLevelXP) {
+            gameState.player.level++;
+            showMessage(`Tebrikler! Seviye ${gameState.player.level} oldun!`, 'success');
+            playSound('levelUp');
+        }
+    }
 
-  detail.style.display='flex';
-  detail.dataset.day=day;
-}
+    function update() {
+        // Player movement
+        if (keys.up.pressed && gameState.player.pos.y > 0) gameState.player.pos.y -= 4;
+        if (keys.down.pressed && gameState.player.pos.y < canvas.height) gameState.player.pos.y += 4;
+        if (keys.left.pressed && gameState.player.pos.x > 0) gameState.player.pos.x -= 4;
+        if (keys.right.pressed && gameState.player.pos.x < canvas.width) gameState.player.pos.x += 4;
+        
+        checkInteraction();
+        
+        // Cooldowns
+        Object.values(gameState.locations).forEach(loc => { if(loc.owned && !loc.ready) { loc.cooldown--; if(loc.cooldown <= 0) loc.ready = true; }});
+        
+        // Mill animation
+        gameState.millAngle += 0.01;
+        
+        // Customer logic
+        if (!gameState.customer && Math.random() < 0.005) {
+            const wants = ['milk', 'egg', 'bread', 'wood'][Math.floor(Math.random() * 4)];
+            gameState.customer = { pos: toPixels({ x: 10, y: 3 }), wants, patience: 120 * 60 };
+            showMessage(`Yeni müşteri: ${wants} istiyor!`, 'info');
+        }
+        if (gameState.customer && --gameState.customer.patience <= 0) { gameState.customer = null; showMessage("Müşteri gitti!", 'error'); playSound('error', 'C3'); }
+        
+        // Oven logic
+        const oven = gameState.locations.oven1;
+        if(oven.baking && --oven.timer <= 0) { oven.baking = false; oven.hasBread = true; showMessage("Ekmek pişti!", 'success'); playSound('collect', 'G5'); addXP(XP_FOR_ACTION.craft); }
+        
+        // Helper AI
+        gameState.helpers.forEach(h => { if(h.type === 'milk') updateMilkHelper(h); if(h.type === 'egg') updateEggHelper(h); if(h.type === 'wood') updateWoodHelper(h); });
+    }
 
-/* ---------- Modal butonları ---------- */
-document.getElementById('closeBtn').onclick=()=>{ detail.style.display='none'; clearInterval(timerInterval); };
-document.getElementById('doneBtn').onclick  =()=>toggleDone(true);
-document.getElementById('resetDayBtn').onclick=()=>toggleDone(false);
+    function moveTowards(entity, target) { const dist = Math.hypot(target.x - entity.x, target.y - entity.y); if (dist < 2) return true; const angle = Math.atan2(target.y - entity.y, target.x - entity.x); entity.x += Math.cos(angle) * 2; entity.y += Math.sin(angle) * 2; return false; }
+    function updateMilkHelper(h) { const cow = Object.values(gameState.locations).find(l => l.type === 'cow' && l.owned && l.ready); const storage = gameState.locations.storageBox.pos; if (h.state === 'idle' && cow && gameState.storage.milk < 10) h.state = 'fetching'; if (h.state === 'fetching' && cow) { if(moveTowards(h, cow.pos)) { cow.ready = false; cow.cooldown = COOLDOWNS.milk; h.hasItem = true; h.state = 'returning'; }} if (h.state === 'returning') { if(moveTowards(h, storage)) { h.hasItem = false; gameState.storage.milk++; h.state = 'idle'; }} }
+    function updateEggHelper(h) { const chicken = Object.values(gameState.locations).find(l => l.type === 'chicken' && l.owned && l.ready); const storage = gameState.locations.storageBox.pos; if (h.state === 'idle' && chicken && gameState.storage.egg < 10) h.state = 'fetching'; if (h.state === 'fetching' && chicken) { if(moveTowards(h, chicken.pos)) { chicken.ready = false; chicken.cooldown = COOLDOWNS.egg; h.hasItem = true; h.state = 'returning'; }} if (h.state === 'returning') { if(moveTowards(h, storage)) { h.hasItem = false; gameState.storage.egg++; h.state = 'idle'; }} }
+    function updateWoodHelper(h) { const tree = Object.values(gameState.locations).find(l => l.type === 'tree' && l.owned && l.ready); const storage = gameState.locations.storageBox.pos; if (h.state === 'idle' && tree && gameState.storage.wood < 10) h.state = 'fetching'; if (h.state === 'fetching' && tree) { if(moveTowards(h, tree.pos)) { tree.ready = false; tree.cooldown = COOLDOWNS.wood; h.hasItem = true; h.state = 'returning'; }} if (h.state === 'returning') { if(moveTowards(h, storage)) { h.hasItem = false; gameState.storage.wood++; h.state = 'idle'; }} }
 
-function toggleDone(setDone){
-  const day=parseInt(detail.dataset.day);
-  const idx=doneDays.indexOf(day);
-  if(setDone){ if(idx===-1) doneDays.push(day); }
-  else       { if(idx>-1)   doneDays.splice(idx,1); }
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(doneDays));
-  renderCalendar();
-  detail.style.display='none';
-  clearInterval(timerInterval);
-}
+    function checkInteraction() {
+        const now = Date.now(); if (now - gameState.lastInteractionTime < 300) return; let interacted = false;
+        Object.values(gameState.locations).forEach(loc => { if(loc.owned && Math.hypot(gameState.player.pos.x - loc.pos.x, gameState.player.pos.y - loc.pos.y) < 50) {
+            let itemType;
+            if (loc.ready) {
+                switch(loc.type) {
+                    case 'cow': itemType = 'milk'; break;
+                    case 'chicken': itemType = 'egg'; break;
+                    case 'wheat': itemType = 'wheat'; break;
+                    case 'tree': itemType = 'wood'; break;
+                }
+                if (itemType) {
+                    gameState.storage[itemType]++; loc.ready = false; loc.cooldown = COOLDOWNS[itemType]; showMessage(`1 ${itemType} topladın!`, 'success'); playSound('collect', 'E5'); addXP(XP_FOR_ACTION.collect); interacted = true;
+                }
+            }
+            if (loc.type === 'oven') {
+                if (loc.hasBread) { gameState.storage.bread++; loc.hasBread = false; showMessage('Ekmeği depoya koydun!', 'success'); playSound('collect', 'G5'); interacted = true; }
+                else if (!loc.baking && gameState.storage.wheat > 0) { gameState.storage.wheat--; loc.baking = true; loc.timer = 10 * 60; showMessage('Buğday fırına atıldı.', 'info'); interacted = true; }
+            }
+        }});
+        if (gameState.customer && Math.hypot(gameState.player.pos.x - gameState.customer.pos.x, gameState.player.pos.y - gameState.customer.pos.y) < 50) {
+            const wants = gameState.customer.wants;
+            if (gameState.storage[wants] > 0) { gameState.storage[wants]--; gameState.player.money += ITEM_PRICES[wants]; showMessage('Satış yapıldı!', 'success'); playSound('sale', 'C5'); addXP(XP_FOR_ACTION.sell); gameState.customer = null; interacted = true; }
+            else { showMessage('Depoda ürün yok!', 'error'); playSound('error', 'C3'); interacted = true; }
+        }
+        if(interacted) gameState.lastInteractionTime = now;
+    }
+    
+    // --- MODAL & UI ---
+    function openModal(title, content) {
+        modalTitle.textContent = title;
+        modalBody.innerHTML = content;
+        modalBackdrop.classList.remove('invisible', 'opacity-0');
+        playSound('synth', 'C4');
+    }
 
-/* ---------- Timer kontrolleri ---------- */
-function updateTimerDisplay(){ timerDisplay.textContent=formatTime(remaining); }
-function formatTime(sec){ const m=Math.floor(sec/60), s=sec%60; return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; }
+    function setupModals() {
+        document.getElementById('hire-helper-btn').addEventListener('click', () => {
+            const level = gameState.player.level;
+            const content = `
+                <button class="w-full bg-blue-600 p-2 rounded" onclick="hireHelper('milk')">Sütçü Kirala (${COSTS.helpers.milk}💰) 🤖</button>
+                <button class="w-full p-2 rounded ${level >= 2 ? 'bg-yellow-500' : 'bg-gray-500 cursor-not-allowed'}" ${level < 2 ? 'disabled' : ''} onclick="hireHelper('egg')">Yumurtacı Kirala (${COSTS.helpers.egg}💰) 🐔 (Lv.2)</button>
+                <button class="w-full p-2 rounded ${level >= 3 ? 'bg-green-600' : 'bg-gray-500 cursor-not-allowed'}" ${level < 3 ? 'disabled' : ''} onclick="hireHelper('wood')">Oduncu Kirala (${COSTS.helpers.wood}💰) 🪓 (Lv.3)</button>
+            `;
+            openModal('Yardımcı Kirala', content);
+        });
+        document.getElementById('market-btn').addEventListener('click', () => {
+             const level = gameState.player.level;
+            let content = '';
+            if (!gameState.locations.cow2.owned) { content += `<button class="w-full p-2 rounded ${level >= 2 ? 'bg-gray-600' : 'bg-gray-500 cursor-not-allowed'}" ${level < 2 ? 'disabled' : ''} onclick="buyAsset('cow2')">Yeni İnek (${COSTS.buildings.cow}💰) 🐮 (Lv.2)</button>`; }
+            if (!gameState.locations.mill1.owned) { content += `<button class="w-full p-2 rounded ${level >= 4 ? 'bg-gray-600' : 'bg-gray-500 cursor-not-allowed'}" ${level < 4 ? 'disabled' : ''} onclick="buyAsset('mill1')">Değirmen (${COSTS.buildings.mill}💰) ⚙️ (Lv.4)</button>`; }
+            if (!content) { content = '<p>Pazarda yeni bir şey yok.</p>'; }
+            openModal('Çiftlik Pazarı', content);
+        });
+        document.getElementById('modal-close-btn').addEventListener('click', () => modalBackdrop.classList.add('invisible', 'opacity-0'));
+    }
+    function hireHelper(type) { const cost = COSTS.helpers[type]; if (gameState.player.money >= cost) { gameState.player.money -= cost; gameState.helpers.push({ type, x: gameState.locations.storageBox.pos.x, y: gameState.locations.storageBox.pos.y, state: 'idle', hasItem: false }); showMessage(`${type} yardımcısı kiralandı!`, 'success'); playSound('sale', 'A4'); } else { showMessage('Yeterli para yok!', 'error'); playSound('error', 'C3'); } }
+    function buyAsset(assetKey) { const asset = gameState.locations[assetKey]; const cost = COSTS.buildings[asset.type]; if (gameState.player.money >= cost) { gameState.player.money -= cost; asset.owned = true; showMessage('Yeni bina inşa edildi!', 'success'); playSound('sale', 'G4'); addXP(XP_FOR_ACTION.build); modalBackdrop.classList.add('invisible', 'opacity-0'); } else { showMessage('Yeterli para yok!', 'error'); playSound('error', 'C3'); } }
+    let messageTimer;
+    function showMessage(text, type) { clearTimeout(messageTimer); messageBox.textContent = text; messageBox.className = 'h-10 bg-black/30 rounded-lg flex items-center justify-center p-2 text-center font-semibold'; if(type === 'success') messageBox.classList.add('text-green-300'); else if(type === 'error') messageBox.classList.add('text-red-400'); else messageBox.classList.add('text-yellow-200'); }
 
-startTimerBtn.onclick=()=>{
-  if(!remaining) remaining=initialSeconds;
-  clearInterval(timerInterval);
-  timerInterval=setInterval(()=>{
-    remaining--; updateTimerDisplay();
-    if(remaining<=0){ clearInterval(timerInterval); if(navigator.vibrate) navigator.vibrate([200,100,200]); alert('Süre doldu!'); }
-  },1000);
-};
-stopTimerBtn.onclick =()=> clearInterval(timerInterval);
-resetTimerBtn.onclick=()=>{ clearInterval(timerInterval); remaining=initialSeconds; updateTimerDisplay(); };
+    // --- KONTROLLER & BAŞLATMA ---
+    function setupControls() {
+        window.addEventListener('keydown', (e) => { const keyMap = {'ArrowUp':'up', 'w':'up', 'ArrowDown':'down', 's':'down', 'ArrowLeft':'left', 'a':'left', 'ArrowRight':'right', 'd':'right'}; if(keyMap[e.key]) keys[keyMap[e.key]].pressed = true; });
+        window.addEventListener('keyup', (e) => { const keyMap = {'ArrowUp':'up', 'w':'up', 'ArrowDown':'down', 's':'down', 'ArrowLeft':'left', 'a':'left', 'ArrowRight':'right', 'd':'right'}; if(keyMap[e.key]) keys[keyMap[e.key]].pressed = false; });
+        ['up', 'down', 'left', 'right'].forEach(dir => { const btn = document.getElementById(`${dir}-btn`); btn.addEventListener('mousedown', () => keys[dir].pressed = true); btn.addEventListener('mouseup', () => keys[dir].pressed = false); btn.addEventListener('mouseleave', () => keys[dir].pressed = false); btn.addEventListener('touchstart', (e) => {e.preventDefault(); keys[dir].pressed = true;}); btn.addEventListener('touchend', (e) => {e.preventDefault(); keys[dir].pressed = false;}); });
+    }
+    
+    function gameLoop() {
+        try {
+            update();
+            render();
+        } catch (e) {
+            console.error("Oyun Döngüsü Hatası:", e);
+            messageBox.style.color = 'red';
+            messageBox.textContent = 'HATA: ' + e.message;
+            return; 
+        }
+        requestAnimationFrame(gameLoop);
+    }
 
-/* --------------------  BAŞLAT -------------------- */
-renderCalendar();
-</script>
+    function init() {
+        gameState = {
+            player: { pos: toPixels({ x: 10, y: 7 }), level: 1, xp: 0, money: 200 },
+            storage: { milk: 0, egg: 0, wheat: 0, flour: 0, bread: 0, wood: 0, cake: 0 },
+            locations: {
+                salesCounter: { type: 'salesCounter', pos: toPixels({ x: 10, y: 2 }), owned: true },
+                storageBox: { type: 'storageBox', pos: toPixels({ x: 2, y: 2 }), owned: true },
+                cow1: { type: 'cow', pos: toPixels({ x: 3, y: 12 }), ready: true, cooldown: 0, owned: true },
+                cow2: { type: 'cow', pos: toPixels({ x: 6, y: 12 }), ready: true, cooldown: 0, owned: false, unlockLevel: 2 },
+                chicken1: { type: 'chicken', pos: toPixels({ x: 13, y: 12 }), ready: true, cooldown: 0, owned: true },
+                wheat1: { type: 'wheat', pos: toPixels({ x: 17, y: 12 }), ready: true, cooldown: 0, owned: true },
+                tree1: { type: 'tree', pos: toPixels({ x: 3, y: 3 }), ready: true, cooldown: 0, owned: true },
+                tree2: { type: 'tree', pos: toPixels({ x: 4, y: 5 }), ready: true, cooldown: 0, owned: true },
+                oven1: { type: 'oven', pos: toPixels({ x: 18, y: 2 }), baking: false, timer: 0, hasBread: false, owned: true },
+                mill1: { type: 'mill', pos: toPixels({ x: 18, y: 8 }), processing: false, timer: 0, hasFlour: false, owned: false, unlockLevel: 4 },
+                bakery1: { type: 'bakery', pos: toPixels({ x: 14, y: 2 }), baking: false, timer: 0, hasCake: false, owned: false, unlockLevel: 5 },
+            },
+            helpers: [],
+            millAngle: 0,
+            customer: null,
+            lastInteractionTime: 0
+        };
+
+        initializeSounds();
+        setupControls();
+        setupModals();
+
+        document.body.addEventListener('click', async () => {
+            if (!audioStarted && typeof Tone !== 'undefined' && Tone.context.state !== 'running') {
+                await Tone.start();
+                audioStarted = true;
+                showMessage("Sesler etkinleştirildi!", "info");
+                new Tone.Loop(time => { sounds.background.triggerAttackRelease("C1", "8n", time); }, "2n").start(0);
+                Tone.Transport.start();
+            }
+        }, { once: true });
+        
+        showMessage("Çiftliğe hoşgeldin!", "info");
+        gameLoop();
+    }
+    </script>
 </body>
 </html>
